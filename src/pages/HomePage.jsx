@@ -63,19 +63,29 @@ function HomePage() {
     navigate(`/word/${encodeURIComponent(word)}`);
   };
 
+  const onSubmit = (e) => {
+    e.preventDefault();
+    const term = query.trim();
+    if (!term) return;
+    navigate(`/word/${encodeURIComponent(term)}`);
+  };
+
   
   return (
     <main>
       <h1>Word Explorer</h1>
 
-      <label htmlFor="search">Search a word</label>
-      <input
-        id="search"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        autoComplete="off"
-        placeholder="Type a word..."
-      />
+      <form onSubmit={onSubmit}>
+        <label htmlFor="search">Search a word</label>
+        <input
+          id="search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          autoComplete="off"
+          placeholder="Type a word..."
+        />
+        <button type="submit">Search</button>
+      </form>
       {status === 'loading' && <p>Loading...</p>}
       {status === 'error' && <p>{error}</p>}
 
