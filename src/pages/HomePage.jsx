@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from 'react-router';
 
 function buildSuggestUrl(prefix) {
   const url = new URL('https://api.datamuse.com/sug');
@@ -8,6 +9,7 @@ function buildSuggestUrl(prefix) {
 }
 
 function HomePage() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [status, setStatus] = useState('idle');
@@ -29,31 +31,37 @@ function HomePage() {
     }
     const controller = new AbortController();
     abortRef.current = controller;
+
+    const timeoutId = setTimeout(async () => {
+      try {
+        setStatus('loading');
+        setError(null);
+
+        const res = await fetch(buildSuggestUrl(trimmed), {
+          signal: controller.signal,
+        });
+        if (!res.ok) throw new Error(`Datamuse error: ${res.status}`);
+
+        const data = await res.json();
+        setSuggestions(Array.isArray(data) ? data : []);
+        setStatus('success');
+      } catch (e) {
+        if (e.name === 'AbortError') return;
+        setStatus('error');
+        setError(e.message || 'Failed to load suggestions');
+      }
+    }, 300);
     
-    async function load() {
-        try {
-          setStatus('loading');
-          setError(null);
-
-          const res = await fetch(buildSuggestUrl(trimmed), {
-            signal: controller.signal,
-          });
-          if (!res.ok) throw new Error(`Datamuse error: ${res.status}`);
-
-          const data = await res.json();
-          setSuggestions(Array.isArray(data) ? data : []);
-          setStatus('success');
-
-        } catch (e) {
-          if (e.name === 'AbortError') return;
-          setStatus('error');
-          setError(e.message || 'Failed to load suggestions');
-        }
+    
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
     }
-
-    load();
-    return () => controller.abort();
   }, [query]);
+
+  const onSelect = (word) => {
+    navigate(`/word/${encodeURIComponent(word)}`);
+  };
 
   
   return (
@@ -74,7 +82,11 @@ function HomePage() {
       {suggestions.length > 0 && (
         <ul>
           {suggestions.map((item) => (
-            <li key={item.word}>{item.word}</li>
+            <li key={item.word}>
+              <button type="button" onClick={() => onSelect(item.word)}>
+                {item.word}
+              </button>
+            </li>
           ))}
         </ul>
       )}
