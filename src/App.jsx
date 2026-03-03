@@ -10,7 +10,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/word/:term" element={<WordPage />} />
+      <Route path="/word/:word" element={<WordPage />} />
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );

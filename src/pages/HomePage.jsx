@@ -65,9 +65,9 @@ function HomePage() {
 
   const onSubmit = (e) => {
     e.preventDefault();
-    const term = query.trim();
-    if (!term) return;
-    navigate(`/word/${encodeURIComponent(term)}`);
+    const word = query.trim();
+    if (!word) return;
+    navigate(`/word/${encodeURIComponent(word)}`);
   };
 
   

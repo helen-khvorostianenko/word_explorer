@@ -1,5 +1,12 @@
+import { Link } from 'react-router';
+
 function NotFoundPage() {
-  return <>NotFoundPage will be here</>;
+  return (
+    <main>
+      <h1>Not Found</h1>
+      <Link to="/">Go Home</Link>
+    </main>
+  );
 }
 
 export default NotFoundPage;
