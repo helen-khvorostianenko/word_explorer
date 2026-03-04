@@ -10,20 +10,23 @@ export function normalizeDictionary(apiData, maxDefsPerPart = 3) {
 
   const ipa =
     entry.phonetic ||
-    entry.phonetics?.find((p) => typeof p.text === 'string' && p.text.trim())?.text ||
+    entry.phonetics?.find((item) => typeof item.text === 'string' && item.text.trim())
+      ?.text ||
     null;
 
   const audioUrl =
-    entry.phonetics?.find((p) => typeof p.audio === 'string' && p.audio.trim())?.audio ||
-    null;
+    entry.phonetics?.find((item) => typeof item.audio === 'string' && item.audio.trim())
+      ?.audio || null;
 
-  const definitionsByPos = (entry.meanings || []).map((m) => ({
-    partOfSpeech: m.partOfSpeech || '—',
-    definitions: (m.definitions || [])
-      .map((d) => d.definition)
-      .filter(Boolean)
-      .slice(0, maxDefsPerPart),
-  })).filter((group) => group.definitions.length > 0);
+  const definitionsByPos = (entry.meanings || [])
+    .map((item) => ({
+      partOfSpeech: item.partOfSpeech || '—',
+      definitions: (item.definitions || [])
+        .map((d) => d.definition)
+        .filter(Boolean)
+        .slice(0, maxDefsPerPart),
+    }))
+    .filter((group) => group.definitions.length > 0);
 
   return { word, ipa, audioUrl, definitionsByPos };
 }

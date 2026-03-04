@@ -1,14 +1,12 @@
 import { useParams, Link} from "react-router";
 import { useEffect, useState } from 'react';
-import {
-  buildDictionaryUrl,
-  normalizeDictionary,
-} from '../utils/dictionary.js';
+import {isNetworkError, getNetworkErrorMessage, getGenericErrorMessage, getDictionaryErrorMessage,} from '../utils/errors.js';
+import { buildDictionaryUrl, normalizeDictionary } from '../utils/dictionary.js';
 
 function WordPage() {
   const { word } = useParams();
   const [card, setCard] = useState(null);
-  const [status, setStatus] = useState('loading'); 
+  const [status, setStatus] = useState('idle'); 
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -23,25 +21,24 @@ function WordPage() {
         const res = await fetch(buildDictionaryUrl(word));
         console.log(res);
         if (!res.ok) {
-          let message = `Dictionary error: ${res.status}`;
-          try {
-            const errJson = await res.json();
-            if (errJson?.message) {
-              message = errJson.message;
-            }
-          } catch (_) {
-            throw new Error(message);
-          }
+          throw new Error(getDictionaryErrorMessage(res.status, word));
         }
 
         const data = await res.json();
         const normalized = normalizeDictionary(data);
-        if (!normalized) throw new Error('No data for this word');
+        if (!normalized) {
+          throw new Error('No data for this word');
+        }
+
         setCard(normalized);
         setStatus('success');
       } catch(e){
         setStatus('error');
-        setError(e.message || 'Failed to load word data');
+        if (isNetworkError(e)) {
+          setError(getNetworkErrorMessage());
+        } else {
+          setError(e.message || getGenericErrorMessage());
+        }
       }
     }
     load();
