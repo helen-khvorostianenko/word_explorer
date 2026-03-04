@@ -8,6 +8,26 @@ function buildSuggestUrl(prefix) {
   return url.toString();
 }
 
+const getErrorMessage = (status) => {
+  switch (status) {
+    case 400:
+      return 'Invalid request. Please try a different search term.';
+    case 404:
+      return 'Suggestions service is temporarily unavailable.';
+    case 408:
+      return 'Request timeout. Please check your connection and try again.';
+    case 429:
+      return 'Too many requests. Please wait a moment before typing again.';
+    case 500:
+    case 502:
+    case 503:
+    case 504:
+      return 'Server error. We are working to fix this as soon as possible.';
+    default:
+      return `An unexpected error occurred (Status: ${status}). Please try again later.`;
+  }
+};
+
 function HomePage() {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -15,22 +35,31 @@ function HomePage() {
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
 
-  const abortRef = useRef(null);
-
+  const controllerRef = useRef(null);
+  const cacheRef = useRef({})
+  
   useEffect(() => {
     const trimmed = query.trim();
-    if (trimmed.length < 3) {
+    if (trimmed.length < 2) {
       setSuggestions([]);
       setStatus('idle');
       setError(null)
       return;
     }
 
-    if (abortRef.current) {
-      abortRef.current.abort();
+    if (cacheRef.current[trimmed]) {
+      setSuggestions(cacheRef.current[trimmed]);
+      setStatus('success');
+      setError(null);
+      return;
+    }
+    
+
+    if (controllerRef.current) {
+      controllerRef.current.abort();
     }
     const controller = new AbortController();
-    abortRef.current = controller;
+    controllerRef.current = controller;
 
     const timeoutId = setTimeout(async () => {
       try {
@@ -40,22 +69,31 @@ function HomePage() {
         const res = await fetch(buildSuggestUrl(trimmed), {
           signal: controller.signal,
         });
-        if (!res.ok) throw new Error(`Datamuse error: ${res.status}`);
+        if (!res.ok) {
+          throw new Error(getErrorMessage(res.status));
+        }
 
         const data = await res.json();
-        setSuggestions(Array.isArray(data) ? data : []);
+        const results = Array.isArray(data) ? data : [];
+        cacheRef.current[trimmed] = results;
+        setSuggestions(results);
         setStatus('success');
       } catch (e) {
         if (e.name === 'AbortError') return;
         setStatus('error');
-        setError(e.message || 'Failed to load suggestions');
+
+        if (e instanceof TypeError && e.message === 'Failed to fetch') {
+          setError('Network error. Please check your internet connection.');
+        } else {
+          setError(e.message || 'Something went wrong. Please try again.');
+        }
       }
     }, 300);
-    
     
     return () => {
       clearTimeout(timeoutId);
       controller.abort();
+      cacheRef.current = {};
     }
   }, [query]);
 
