@@ -66,12 +66,6 @@
       "text": "syntax",
       "categoryId": "dev-basics",
       "addedAt": 1700000000000
-    },
-    {
-      "id": "wordless",
-      "text": "wordless",
-      "categoryId": "dev-basics",
-      "addedAt": 1772689904784
     }
   ],
   "notes": [
@@ -81,6 +75,5 @@
       "text": "Finding and fixing bugs in code",
       "updatedAt": 1700000000000
     }
-  ],
-  "$schema": "./node_modules/json-server/schema.json"
+  ]
 }

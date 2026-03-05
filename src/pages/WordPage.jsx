@@ -39,6 +39,7 @@ function WordPage() {
 
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [note, setNote] = useState("");
 
   useEffect(() => {
     if (!word) return;
@@ -77,6 +78,12 @@ function WordPage() {
 
   useEffect(() => {
     setActiveTab(TABS[0].key);
+    async function loadNote() {
+      const data = await getNote(word);
+      if (data) setNote(data.text);
+    }
+
+    loadNote();
   }, [word]);
 
   useEffect(() => {
@@ -215,14 +222,24 @@ function WordPage() {
             <h2>Save word</h2>
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            <button onClick={() => saveWord(word, selectedCategory)}>Save word</button>
+              onChange={(e) => setSelectedCategory(e.target.value)}
+            >
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            <button onClick={() => saveWord(word, selectedCategory)}>
+              Save word
+            </button>
+          </section>
+          <section>
+            <h2>Notes</h2>
+
+            <textarea value={note} onChange={(e) => setNote(e.target.value)} />
+
+            <button onClick={() => saveNote(word, note)}>Save note</button>
           </section>
         </>
       )}
