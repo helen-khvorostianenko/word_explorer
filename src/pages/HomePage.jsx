@@ -47,7 +47,6 @@ function HomePage() {
     const controller = new AbortController();
     controllerRef.current = controller;
 
-
     const timeoutId = setTimeout(async () => {
       try {
         setStatus('loading');

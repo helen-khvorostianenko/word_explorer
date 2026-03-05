@@ -1,6 +1,12 @@
 import { useParams, Link} from "react-router";
-import { useEffect, useState } from 'react';
-import {isNetworkError, getNetworkErrorMessage, getGenericErrorMessage, getDictionaryErrorMessage,} from '../utils/errors.js';
+import { useEffect, useState, useRef} from 'react';
+import {
+  isNetworkError,
+  getNetworkErrorMessage,
+  getGenericErrorMessage,
+  getDictionaryErrorMessage,
+  getDatamuseErrorMessage,
+} from '../utils/errors.js';
 import { buildDictionaryUrl, normalizeDictionary } from '../utils/dictionary.js';
 
 const TABS = [
@@ -27,6 +33,8 @@ function WordPage() {
   const [relatedStatus, setRelatedStatus] = useState('idle');
   const [relatedError, setRelatedError] = useState(null);
   const [relatedWords, setRelatedWords] = useState([]);
+  const tabsControllerRef = useRef(null);
+  const tabsCacheRef = useRef({});
 
   useEffect(() => {
     if (!word) return;
@@ -64,15 +72,35 @@ function WordPage() {
   }, [word]);
 
   useEffect(() => {
+    setActiveTab(TABS[0].key);
+  }, [word]);
+
+  useEffect(() => {
     if (!word) return;
+
+    const cacheKey = `${activeTab}-${word}`.toLowerCase();
+    if (tabsCacheRef.current[cacheKey]) {
+      setRelatedWords(tabsCacheRef.current[cacheKey]);
+      setRelatedStatus('success');
+      setRelatedError(null);
+      return;
+    }
+
+    if (tabsControllerRef.current) {
+      tabsControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    tabsControllerRef.current = controller
 
     async function loadRelated() {
       try {
         setRelatedStatus('loading');
         setRelatedError(null);
-        setRelatedWords([]);
+        // setRelatedWords([]);
 
-        const res = await fetch(buildDatamuseWordsUrl(activeTab, word));
+        const res = await fetch(buildDatamuseWordsUrl(activeTab, word), {
+          signal: controller.signal,
+          });
 
         if (!res.ok) {
           throw new Error(getDatamuseErrorMessage(res.status));
@@ -80,9 +108,11 @@ function WordPage() {
 
         const data = await res.json();
         const results = Array.isArray(data) ? data : [];
+        tabsCacheRef.current[cacheKey] = results;
         setRelatedWords(results);
         setRelatedStatus('success');
       } catch (e) {
+        if (e.name === 'AbortError') return;
         setRelatedStatus('error');
         if (isNetworkError(e)) setRelatedError(getNetworkErrorMessage());
         else setRelatedError(e.message || getGenericErrorMessage());
@@ -90,6 +120,9 @@ function WordPage() {
     }
 
     loadRelated();
+    return () => {
+      controller.abort();
+    }
   }, [word, activeTab]);
 
    
