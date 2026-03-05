@@ -1,5 +1,5 @@
-import { useParams, Link, useNavigate} from "react-router";
-import { useEffect, useState, useRef} from 'react';
+import { useParams, Link} from "react-router";
+import { useEffect, useState, useRef, use} from 'react';
 import {
   isNetworkError,
   getNetworkErrorMessage,
@@ -8,6 +8,7 @@ import {
   getDatamuseErrorMessage,
 } from '../utils/errors.js';
 import { buildDictionaryUrl, normalizeDictionary } from '../utils/dictionary.js';
+import { getCategories, saveNote, saveWord } from "../api/api.js";
 
 const TABS = [
   { key:'rel_syn', label: 'Synonyms' },
@@ -35,6 +36,9 @@ function WordPage() {
   const [relatedWords, setRelatedWords] = useState([]);
   const tabsControllerRef = useRef(null);
   const tabsCacheRef = useRef({});
+
+  const [categories, setCategories] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
 
   useEffect(() => {
     if (!word) return;
@@ -127,6 +131,17 @@ function WordPage() {
     }
   }, [word, activeTab]);
 
+  useEffect(() => {
+    async function loadCategories(params) {
+      const data = await getCategories();
+      setCategories(data);
+      if (data.length > 0 ){
+        setSelectedCategory(data[0].id);  
+      }    
+    }
+    loadCategories();
+  }, []);
+
    
   return (
     <main>
@@ -195,6 +210,19 @@ function WordPage() {
                 ))}
               </ul>
             )}
+          </section>
+          <section>
+            <h2>Save word</h2>
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            <button onClick={() => saveWord(word, selectedCategory)}>Save word</button>
           </section>
         </>
       )}
