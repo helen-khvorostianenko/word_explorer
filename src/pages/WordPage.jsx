@@ -9,13 +9,24 @@ const TABS = [
   { key:'ml', label: 'Means Like' },
   { key:'sp', label: 'Spelled Like' },
   { key:'sl', label: 'Sounds Like' },
-];     
+];   
+function buildDatamuseWordsUrl(tabKey, word) {
+  const url = new URL('https://api.datamuse.com/words');
+  url.searchParams.set(tabKey, word);
+  url.searchParams.set('max', '20');
+  return url.toString();
+}
+
 function WordPage() {
   const { word } = useParams();
   const [card, setCard] = useState(null);
   const [status, setStatus] = useState('idle'); 
   const [error, setError] = useState(null);
+
   const [activeTab, setActiveTab] = useState(TABS[0].key);
+  const [relatedStatus, setRelatedStatus] = useState('idle');
+  const [relatedError, setRelatedError] = useState(null);
+  const [relatedWords, setRelatedWords] = useState([]);
 
   useEffect(() => {
     if (!word) return;
@@ -51,6 +62,35 @@ function WordPage() {
     }
     load();
   }, [word]);
+
+  useEffect(() => {
+    if (!word) return;
+
+    async function loadRelated() {
+      try {
+        setRelatedStatus('loading');
+        setRelatedError(null);
+        setRelatedWords([]);
+
+        const res = await fetch(buildDatamuseWordsUrl(activeTab, word));
+
+        if (!res.ok) {
+          throw new Error(getDatamuseErrorMessage(res.status));
+        }
+
+        const data = await res.json();
+        const results = Array.isArray(data) ? data : [];
+        setRelatedWords(results);
+        setRelatedStatus('success');
+      } catch (e) {
+        setRelatedStatus('error');
+        if (isNetworkError(e)) setRelatedError(getNetworkErrorMessage());
+        else setRelatedError(e.message || getGenericErrorMessage());
+      }
+    }
+
+    loadRelated();
+  }, [word, activeTab]);
 
    
   return (
@@ -104,6 +144,18 @@ function WordPage() {
                 </button>
               ))}
             </div>
+            {relatedStatus === 'loading' && <p>Loading…</p>}
+            {relatedStatus === 'error' && <p>{relatedError}</p>}
+            {relatedStatus === 'success' && relatedWords.length === 0 && (
+              <p>No results.</p>
+            )}
+            {relatedWords.length > 0 && (
+              <ul>
+                {relatedWords.map((item) => (
+                  <li key={item.word}>{item.word}</li>
+                ))}
+              </ul>
+            )}
           </section>
         </>
       )}
