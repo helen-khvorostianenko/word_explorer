@@ -3,11 +3,19 @@ import { useEffect, useState } from 'react';
 import {isNetworkError, getNetworkErrorMessage, getGenericErrorMessage, getDictionaryErrorMessage,} from '../utils/errors.js';
 import { buildDictionaryUrl, normalizeDictionary } from '../utils/dictionary.js';
 
+const TABS = [
+  { key:'rel_syn', label: 'Synonyms' },
+  { key:'rel_rhy', label: 'Rhymes' },
+  { key:'ml', label: 'Means Like' },
+  { key:'sp', label: 'Spelled Like' },
+  { key:'sl', label: 'Sounds Like' },
+];     
 function WordPage() {
   const { word } = useParams();
   const [card, setCard] = useState(null);
   const [status, setStatus] = useState('idle'); 
   const [error, setError] = useState(null);
+  const [activeTab, setActiveTab] = useState(TABS[0].key);
 
   useEffect(() => {
     if (!word) return;
@@ -81,6 +89,21 @@ function WordPage() {
                 ))}
               </div>
             )}
+          </section>
+          <section>
+            <h2>Explore</h2>
+            <div>
+              {TABS.map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  disabled={activeTab === tab.key}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </section>
         </>
       )}
