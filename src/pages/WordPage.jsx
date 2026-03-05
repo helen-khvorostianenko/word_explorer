@@ -1,4 +1,4 @@
-import { useParams, Link} from "react-router";
+import { useParams, Link, useNavigate} from "react-router";
 import { useEffect, useState, useRef} from 'react';
 import {
   isNetworkError,
@@ -96,7 +96,9 @@ function WordPage() {
       try {
         setRelatedStatus('loading');
         setRelatedError(null);
-        // setRelatedWords([]);
+        if (!tabsCacheRef.current[cacheKey]) {
+          setRelatedWords([]);
+        }
 
         const res = await fetch(buildDatamuseWordsUrl(activeTab, word), {
           signal: controller.signal,
@@ -185,7 +187,11 @@ function WordPage() {
             {relatedWords.length > 0 && (
               <ul>
                 {relatedWords.map((item) => (
-                  <li key={item.word}>{item.word}</li>
+                  <li key={item.word}>
+                    <Link to={`/word/${encodeURIComponent(item.word)}`}>
+                      {item.word}
+                    </Link>
+                  </li>
                 ))}
               </ul>
             )}
