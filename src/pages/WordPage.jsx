@@ -1,4 +1,4 @@
-import { useParams, Link, data} from "react-router";
+import { useParams, Link} from "react-router";
 import { useEffect, useState, useRef} from 'react';
 import {
   isNetworkError,
@@ -8,6 +8,7 @@ import {
   getDatamuseErrorMessage,
 } from '../utils/errors.js';
 import { buildDictionaryUrl, normalizeDictionary } from '../utils/dictionary.js';
+import { buildDatamuseWordsUrl } from '../utils/datamuse.js';
 import {
   getCategories,
   getWord,
@@ -15,6 +16,8 @@ import {
   updatedWordCategory,
   saveNote,
   getNote,
+  updateNote,
+  deleteNote,
 } from '../api/api.js';
 
 const TABS = [
@@ -24,12 +27,6 @@ const TABS = [
   { key:'sp', label: 'Spelled Like' },
   { key:'sl', label: 'Sounds Like' },
 ];   
-function buildDatamuseWordsUrl(tabKey, word) {
-  const url = new URL('https://api.datamuse.com/words');
-  url.searchParams.set(tabKey, word);
-  url.searchParams.set('max', '20');
-  return url.toString();
-}
 
 function WordPage() {
   const { word } = useParams();
@@ -46,9 +43,13 @@ function WordPage() {
 
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [note, setNote] = useState("");
   const [savedWord, setSavedWord] = useState(null);
   const [saveMessage, setSaveMessage] = useState('');
+  
+  const [note, setNote] = useState('');
+  const [noteStatus, setNoteStatus] = useState('idle'); 
+  const [noteId, setNoteId] = useState(null);
+  const noteTimeoutRef = useRef(null);
 
   useEffect(() => {
     if (!word) return;
@@ -88,7 +89,10 @@ function WordPage() {
     setActiveTab(TABS[0].key);
     async function loadNote() {
       const data = await getNote(word);
-      if (data) setNote(data.text);
+      if (data) {
+        setNote(data.text);
+        setNoteId(data.id);
+      }
     }
 
     loadNote();
@@ -164,16 +168,16 @@ function WordPage() {
   }, [word]);
 
   async function handleSaveWord() {
-    if (! selectedCategory) return; 
+    if (!selectedCategory) return; 
     try {
       let data;
       if (!savedWord) {
-        const data = await saveWord(word, selectedCategory);
-        setSavedWord(data);
+        data = await saveWord(word, selectedCategory);
       } else {
-        const data = await updatedWordCategory(word, selectedCategory);
-        setSavedWord(data);
+        data = await updatedWordCategory(word, selectedCategory);
       }
+      setSavedWord(data);
+
       const categoryName = categories.find((cat) => cat.id === selectedCategory)?.name || '';
       setSaveMessage(`✓ Saved to : ${categoryName}`);
       setTimeout(() => {
@@ -183,6 +187,53 @@ function WordPage() {
        setSaveMessage("Failed to save word.");
     }
   }
+
+  useEffect(() => {
+    if (!noteId && !note.trim()) return;
+    clearTimeout(noteTimeoutRef.current);
+
+    noteTimeoutRef.current = setTimeout(async () => {
+      try {
+        setNoteStatus('saving');
+        let data;
+        if (!noteId) {
+          data = await saveNote(word, note);
+          setNoteId(data.id);
+        } else {
+          await updateNote(noteId, note);
+        }
+        setNoteStatus('saved');
+      } catch {
+        setNoteStatus('error');
+      }
+    }, 800);
+
+    return () => clearTimeout(noteTimeoutRef.current);
+  }, [note]);
+
+  async function handleDeleteNote() {
+    if (!noteId) return;
+
+    await deleteNote(noteId);
+
+    setNote('');
+    setNoteId(null);
+    setNoteStatus('idle');
+  }
+
+  function renderNoteStatus(status) {
+    switch (status) {
+      case 'saving':
+        return <p>Saving…</p>;
+      case 'saved':
+        return <p>✓ Saved</p>;
+      case 'error':
+        return <p>Failed to save note</p>;
+      default:
+        return null;
+    }
+  }
+
   const savedCategoryName = categories.find((cat) => cat.id === savedWord?.categoryId)?.name;
   const isCategoryChanged = savedWord && selectedCategory !== savedWord.categoryId;
 
@@ -245,7 +296,7 @@ function WordPage() {
             {relatedWords.length > 0 && (
               <ul>
                 {relatedWords.map((item) => (
-                  <li key={item.word}>
+                  <li key={`${item.word}-${activeTab}`}>
                     <Link to={`/word/${encodeURIComponent(item.word)}`}>
                       {item.word}
                     </Link>
@@ -255,7 +306,7 @@ function WordPage() {
             )}
           </section>
           <section>
-            {selectedCategory == '' && (
+            {!savedWord && (
               <>
                 <h2>Save the word into your list</h2>
                 <p>Select a category to save this word.</p>
@@ -263,7 +314,7 @@ function WordPage() {
             )}
             {savedWord && (
               <>
-                <h2>Selected list</h2>
+                <h2>Saved in your list</h2>
                 <p>
                   This word is saved in <strong>{savedCategoryName}</strong>
                 </p>
@@ -281,7 +332,11 @@ function WordPage() {
                 </option>
               ))}
             </select>
-            <button onClick={handleSaveWord} disabled={!selectedCategory}>
+            <button
+              onClick={handleSaveWord}
+              disabled={!selectedCategory || !isCategoryChanged}
+              title={!selectedCategory ? 'Select a category first' : ''}
+            >
               {!savedWord ? 'Save word' : 'Update category'}
             </button>
             {isCategoryChanged && (
@@ -294,9 +349,14 @@ function WordPage() {
           </section>
           <section>
             <h2>Notes</h2>
-            <textarea value={note} onChange={(e) => setNote(e.target.value)} />
-
-            <button onClick={() => saveNote(word, note)}>Save note</button>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Write your note..."
+              rows={4}
+            />
+            {noteId && <button onClick={handleDeleteNote}>Delete note</button>}
+            {renderNoteStatus(noteStatus)}
           </section>
         </>
       )}
