@@ -20,6 +20,32 @@ export async function getWordsByCategory(category) {
   return Array.isArray(data) ? data : [];
 }
 
+export async function getWord(wordId) {
+  const res = await fetch(`${API}/words/${encodeURIComponent(wordId)}`);
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    throw new Error(`Failed to fetch word "${wordId}": ${res.status}`);
+  }
+  return res.json();
+} 
+
+export async function updatedWordCategory(wordId, newCategoryId) {
+  const res = await fetch(`${API}/words/${encodeURIComponent(wordId)}`, {
+    method: 'PATCH',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({ 
+      categoryId: newCategoryId,
+      updatedAt: Date.now(),
+     }),
+  });
+  if (!res.ok){
+    throw new Error(`Failed to update category for word "${wordId}": ${res.status}`);
+  }
+  return res.json();
+}
+
 export async function saveWord(word, categoryId) {
   const res = await fetch(`${API}/words`, {
     method: 'POST',
@@ -55,14 +81,41 @@ export async function saveNote(wordId, text) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      id: `note-${wordId}.toLowerCase()`, 
+      id: `note-${wordId.toLowerCase()}`,
       wordId,
       text,
       updatedAt: Date.now(),
-    })
+    }),
   });
   if (!res.ok) {
     throw new Error(`Failed to save note for word "${wordId}": ${res.status}`);
   }
   return res.json();
+}
+
+export async function deleteNote(noteId) {
+  const res = await fetch(`${API}/notes/${encodeURIComponent(noteId)}`, {
+    method: `DELETE`,
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to delete note "${noteId}": ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function updateNote(noteId, text) {
+  const res = await fetch(`${API}/notes/${encodeURIComponent(noteId)}`, {
+    method: 'PATCH',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      text,
+      updatedAt: Date.now(),
+    }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to update note "${noteId}": ${res.status}`);
+  }
+  return res.json();  
 }
