@@ -1,5 +1,5 @@
-import { useParams, Link} from "react-router";
-import { useEffect, useState, useRef, use} from 'react';
+import { useParams, Link, data} from "react-router";
+import { useEffect, useState, useRef} from 'react';
 import {
   isNetworkError,
   getNetworkErrorMessage,
@@ -8,7 +8,14 @@ import {
   getDatamuseErrorMessage,
 } from '../utils/errors.js';
 import { buildDictionaryUrl, normalizeDictionary } from '../utils/dictionary.js';
-import { getCategories, saveNote, saveWord } from "../api/api.js";
+import {
+  getCategories,
+  getWord,
+  saveWord,
+  updatedWordCategory,
+  saveNote,
+  getNote,
+} from '../api/api.js';
 
 const TABS = [
   { key:'rel_syn', label: 'Synonyms' },
@@ -40,6 +47,8 @@ function WordPage() {
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [note, setNote] = useState("");
+  const [savedWord, setSavedWord] = useState(null);
+  const [saveMessage, setSaveMessage] = useState('');
 
   useEffect(() => {
     if (!word) return;
@@ -51,7 +60,6 @@ function WordPage() {
         setCard(null);
 
         const res = await fetch(buildDictionaryUrl(word));
-        console.log(res);
         if (!res.ok) {
           throw new Error(getDictionaryErrorMessage(res.status, word));
         }
@@ -139,17 +147,45 @@ function WordPage() {
   }, [word, activeTab]);
 
   useEffect(() => {
-    async function loadCategories(params) {
-      const data = await getCategories();
-      setCategories(data);
-      if (data.length > 0 ){
-        setSelectedCategory(data[0].id);  
-      }    
+    async function loadWordData(params) {
+      const[cats, data] = await Promise.all([
+        getCategories(),
+        getWord(word)
+      ])
+      setCategories(cats);
+      if (data) {
+        setSavedWord(data);
+        setSelectedCategory(data.categoryId || '');
+      } else {
+        setSelectedCategory('');
+      }
     }
-    loadCategories();
-  }, []);
+    loadWordData();
+  }, [word]);
 
-   
+  async function handleSaveWord() {
+    if (! selectedCategory) return; 
+    try {
+      let data;
+      if (!savedWord) {
+        const data = await saveWord(word, selectedCategory);
+        setSavedWord(data);
+      } else {
+        const data = await updatedWordCategory(word, selectedCategory);
+        setSavedWord(data);
+      }
+      const categoryName = categories.find((cat) => cat.id === selectedCategory)?.name || '';
+      setSaveMessage(`✓ Saved to : ${categoryName}`);
+      setTimeout(() => {
+        setSaveMessage('');
+      }, 3000);
+    } catch (e) {
+       setSaveMessage("Failed to save word.");
+    }
+  }
+  const savedCategoryName = categories.find((cat) => cat.id === savedWord?.categoryId)?.name;
+  const isCategoryChanged = savedWord && selectedCategory !== savedWord.categoryId;
+
   return (
     <main>
       <div>
@@ -219,24 +255,45 @@ function WordPage() {
             )}
           </section>
           <section>
-            <h2>Save word</h2>
+            {selectedCategory == '' && (
+              <>
+                <h2>Save the word into your list</h2>
+                <p>Select a category to save this word.</p>
+              </>
+            )}
+            {savedWord && (
+              <>
+                <h2>Selected list</h2>
+                <p>
+                  This word is saved in <strong>{savedCategoryName}</strong>
+                </p>
+              </>
+            )}
+            <p>Category:</p>
             <select
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
             >
+              <option value="">Select a category</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
                 </option>
               ))}
             </select>
-            <button onClick={() => saveWord(word, selectedCategory)}>
-              Save word
+            <button onClick={handleSaveWord} disabled={!selectedCategory}>
+              {!savedWord ? 'Save word' : 'Update category'}
             </button>
+            {isCategoryChanged && (
+              <p>
+                Category changed. Click <strong>Update category</strong> to
+                save.
+              </p>
+            )}
+            {saveMessage && <p>{saveMessage}</p>}
           </section>
           <section>
             <h2>Notes</h2>
-
             <textarea value={note} onChange={(e) => setNote(e.target.value)} />
 
             <button onClick={() => saveNote(word, note)}>Save note</button>
