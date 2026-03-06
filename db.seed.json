@@ -1,0 +1,79 @@
+{
+  "categories": [
+    {
+      "id": "dev-basics",
+      "name": "Developer Basics",
+      "createdAt": 1700000000000
+    }
+  ],
+  "words": [
+    {
+      "id": "debug",
+      "text": "debug",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "function",
+      "text": "function",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "array",
+      "text": "array",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "object",
+      "text": "object",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "variable",
+      "text": "variable",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "commit",
+      "text": "commit",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "deploy",
+      "text": "deploy",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "server",
+      "text": "server",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "client",
+      "text": "client",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    },
+    {
+      "id": "syntax",
+      "text": "syntax",
+      "categoryId": "dev-basics",
+      "addedAt": 1700000000000
+    }
+  ],
+  "notes": [
+    {
+      "id": "note-debug",
+      "wordId": "debug",
+      "text": "Finding and fixing bugs in code",
+      "updatedAt": 1700000000000
+    }
+  ]
+}
