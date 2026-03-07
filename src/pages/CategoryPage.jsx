@@ -1,14 +1,19 @@
-import { Link, useParams } from "react-router";
-import { useEffect, useState } from "react";
-import { getCategories, getWordsByCategory, deleteWord } from '../api/api.js';
+import { Link, useParams } from 'react-router';
+import { useEffect, useState } from 'react';
+import {
+  getCategories,
+  getWordsByCategory,
+  deleteWord,
+  updateCategory,
+} from '../api/api.js';
 import {
   isNetworkError,
   getNetworkErrorMessage,
   getGenericErrorMessage,
 } from '../utils/errors.js';
 
-function CategoryPage(){
-  const {id} = useParams();
+function CategoryPage() {
+  const { id } = useParams();
 
   const [category, setCategory] = useState(null);
   const [words, setWords] = useState([]);
@@ -16,15 +21,19 @@ function CategoryPage(){
   const [error, setError] = useState(null);
   const [deleteError, setDeleteError] = useState(null);
 
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameError, setRenameError] = useState(null);
+
   useEffect(() => {
     async function load() {
-      try{
+      try {
         setStatus('loading');
         setError(null);
         setCategory(null);
         setWords([]);
 
-        const[cats, wordList] = await Promise.all([
+        const [cats, wordList] = await Promise.all([
           getCategories(),
           getWordsByCategory(id),
         ]);
@@ -33,7 +42,7 @@ function CategoryPage(){
         setCategory(found);
         setWords(wordList);
         setStatus('success');
-      } catch(e) {
+      } catch (e) {
         setStatus('error');
         setError(
           isNetworkError(e)
@@ -44,27 +53,56 @@ function CategoryPage(){
     }
     load();
   }, [id]);
-
+  
   async function handleDeleteWord(wordId) {
-    try{
+    try {
       setDeleteError(null);
-      await deleteWord(wordId)
+      await deleteWord(wordId);
       setWords((prev) => prev.filter((w) => w.id !== wordId));
-    } catch {
+    } catch (e) {
       setDeleteError(
         isNetworkError(e)
           ? getNetworkErrorMessage()
           : e.message || getGenericErrorMessage()
-      );  
+      );
     }
   }
 
+  function handleStartRename() {
+    setRenameValue(category.name);
+    setRenameError(null);
+    setIsRenaming(true);
+  }
+
+  async function handleRename(e) {
+    e.preventDefault();
+    const trimmed = renameValue.trim();
+    if (!trimmed) {
+      setRenameError('Name cannot be empty.');
+      return;
+    }
+    if (trimmed === category.name) {
+      setIsRenaming(false);
+      return;
+    }
+    try {
+      setRenameError(null);
+      const updated = await updateCategory(id, trimmed);
+      setCategory(updated);
+      setIsRenaming(false);
+    } catch (e) {
+      setRenameError(
+        isNetworkError(e)
+          ? getNetworkErrorMessage()
+          : e.message || getGenericErrorMessage()
+      );
+    }
+  }
 
   return (
     <main>
       <Link to="/">Home</Link>
-      <h1>Category</h1>
-      <p>ID: {id}</p>
+
       {status === 'loading' && <p>Loading…</p>}
       {status === 'error' && <p>{error}</p>}
 
@@ -74,7 +112,27 @@ function CategoryPage(){
             <p>Category not found.</p>
           ) : (
             <>
-              <h1>{category.name}</h1>
+              {isRenaming ? (
+                <form onSubmit={handleRename}>
+                  <label htmlFor="rename">Category name</label>
+                  <input
+                    id="rename"
+                    value={renameValue}
+                    onChange={(e) => setRenameValue(e.target.value)}
+                    autoFocus
+                  />
+                  <button type="submit">Save</button>
+                  <button type="button" onClick={() => setIsRenaming(false)}>
+                    Cancel
+                  </button>
+                  {renameError && <p>{renameError}</p>}
+                </form>
+              ) : (
+                <>
+                  <h1>{category.name}</h1>
+                  <button onClick={handleStartRename}>Rename</button>
+                </>
+              )}
               {deleteError && <p>{deleteError}</p>}
               {words.length === 0 ? (
                 <p>No words in this category yet.</p>
