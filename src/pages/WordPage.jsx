@@ -17,6 +17,8 @@ import {
 } from '../api/api.js';
 
 import Note from '../features/word/Note.jsx'
+import WordDefinition from '../features/word/WordDefinition.jsx';
+
 const TABS = [
   { key:'rel_syn', label: 'Synonyms' },
   { key:'rel_rhy', label: 'Rhymes' },
@@ -206,32 +208,7 @@ function WordPage() {
 
       {status === 'success' && card && (
         <>
-          <h1>{card.word}</h1>
-          <div>
-            <strong>IPA:</strong> {card.ipa || '—'}{' '}
-            {card.audioUrl ? <audio controls src={card.audioUrl} /> : null}
-          </div>
-          <section>
-            <h2>Definitions</h2>
-            {card.definitionsByPos.length === 0 ? (
-              <p>—</p>
-            ) : (
-              <div>
-                {card.definitionsByPos.map((group) => (
-                  <div key={group.partOfSpeech}>
-                    <div>
-                      <em>{group.partOfSpeech}</em>
-                    </div>
-                    <ol>
-                      {group.definitions.map((def, idx) => (
-                        <li key={`${group.partOfSpeech}-${idx}`}>{def}</li>
-                      ))}
-                    </ol>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
+          <WordDefinition card={card} />
           <section>
             <h2>Explore</h2>
             <div>
@@ -318,7 +295,7 @@ function WordPage() {
               </>
             )}
           </section>
-          {savedWordData && <Note word={word} savedWordData={savedWordData}/>}
+          {savedWordData && <Note word={word} savedWordData={savedWordData} />}
         </>
       )}
     </main>
