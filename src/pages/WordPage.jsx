@@ -46,13 +46,14 @@ function WordPage() {
 
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [savedWord, setSavedWord] = useState(null);
+  const [savedWordData, setSavedWord] = useState(null);
   const [saveMessage, setSaveMessage] = useState('');
   
   const [note, setNote] = useState('');
   const [noteStatus, setNoteStatus] = useState('idle'); 
   const [noteId, setNoteId] = useState(null);
   const noteTimeoutRef = useRef(null);
+  const isNoteInitialLoad = useRef(true);
 
   useEffect(() => {
     if (!word) return;
@@ -90,15 +91,11 @@ function WordPage() {
 
   useEffect(() => {
     setActiveTab(TABS[0].key);
-    async function loadNote() {
-      const data = await getNote(word);
-      if (data) {
-        setNote(data.text);
-        setNoteId(data.id);
-      }
-    }
 
-    loadNote();
+    setNote('');
+    setNoteId(null);
+    setNoteStatus('idle');
+    isNoteInitialLoad.current = true;
   }, [word]);
 
   useEffect(() => {
@@ -191,7 +188,7 @@ function WordPage() {
     if (!selectedCategory) return; 
     try {
       let data;
-      if (!savedWord) {
+      if (!savedWordData) {
         data = await saveWord(word, selectedCategory);
       } else {
         data = await updatedWordCategory(word, selectedCategory);
@@ -209,12 +206,32 @@ function WordPage() {
   }
 
   useEffect(() => {
+    if (!savedWordData) return;
+
+    async function loadNote() {
+      try {
+        const data = await getNote(word);
+        if (data) {
+          setNote(data.text);
+          setNoteId(data.id);
+        }
+      } catch {
+      } finally {
+        isNoteInitialLoad.current = false;
+      }
+    }
+    loadNote();
+  }, [savedWordData]);
+
+  useEffect(() => {
+    if ( isNoteInitialLoad.current) return;
     if (!noteId && !note.trim()) return;
+
     clearTimeout(noteTimeoutRef.current);
+    setNoteStatus("saving");
 
     noteTimeoutRef.current = setTimeout(async () => {
       try {
-        setNoteStatus('saving');
         let data;
         if (!noteId) {
           data = await saveNote(word, note);
@@ -254,9 +271,10 @@ function WordPage() {
     }
   }
 
-  const savedCategoryName = categories.find((cat) => cat.id === savedWord?.categoryId)?.name;
-  const isCategoryChanged = savedWord && selectedCategory !== savedWord.categoryId;
-
+  const savedCategoryName = categories.find((cat) => cat.id === savedWordData?.categoryId)?.name;
+  const isCategoryChanged = savedWordData
+    ? !!selectedCategory && selectedCategory !== savedWordData.categoryId
+    : !!selectedCategory; 
   return (
     <main>
       <div>
@@ -326,19 +344,19 @@ function WordPage() {
             )}
           </section>
           <section>
-            {serverStatus === 'loading' && <p>Loading your word list…</p>}
+            {serverStatus === 'loading' && <p>Loading your word…</p>}
             {serverStatus === 'error' && (
-              <p>Could not load your word list: {serverError}</p>
+              <p>Could not load your word: {serverError}</p>
             )}
             {serverStatus === 'success' && (
               <>
-                {!savedWord && (
+                {!savedWordData && (
                   <>
                     <h2>Save the word into your list</h2>
                     <p>Select a category to save this word.</p>
                   </>
                 )}
-                {savedWord && (
+                {savedWordData && (
                   <>
                     <h2>Saved in your list</h2>
                     <p>
@@ -348,6 +366,8 @@ function WordPage() {
                 )}
                 <p>Category:</p>
                 <select
+                  id="category"
+                  name="category"
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                 >
@@ -363,29 +383,36 @@ function WordPage() {
                   disabled={!selectedCategory || !isCategoryChanged}
                   title={!selectedCategory ? 'Select a category first' : ''}
                 >
-                  {!savedWord ? 'Save word' : 'Update category'}
+                  {!savedWordData ? 'Save category' : 'Update category'}
                 </button>
                 {isCategoryChanged && (
                   <p>
-                    Category changed. Click <strong>Update category</strong> to
-                    save.
+                    Category changed. Click{' '}
+                    <strong>
+                      {!savedWordData ? 'Save' : 'Update'} category
+                    </strong>{' '}
+                    to save.
                   </p>
                 )}
                 {saveMessage && <p>{saveMessage}</p>}
               </>
             )}
           </section>
-          <section>
-            <h2>Notes</h2>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Write your note..."
-              rows={4}
-            />
-            {noteId && <button onClick={handleDeleteNote}>Delete note</button>}
-            {renderNoteStatus(noteStatus)}
-          </section>
+          {savedWordData && (
+            <section>
+              <h2>Notes</h2>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Write your note..."
+                rows={4}
+              />
+              {noteId && (
+                <button onClick={handleDeleteNote}>Delete note</button>
+              )}
+              {renderNoteStatus(noteStatus)}
+            </section>
+          )}
         </>
       )}
     </main>
