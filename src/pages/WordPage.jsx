@@ -16,6 +16,7 @@ import Note from '../features/word/Note.jsx'
 import WordDefinition from '../features/word/WordDefinition.jsx';
 import RelatedWords from "../features/word/RelatedWords.jsx";
 import SaveToCategory from "../features/word/SaveToCategory.jsx";
+import SearchBar from "../shared/SearchBar.jsx";
 
 function WordPage() {
   const { word } = useParams();
@@ -99,7 +100,9 @@ function WordPage() {
       <div>
         <Link to="/">Home</Link>
       </div>
-
+      <div>
+        <SearchBar />
+      </div>
       {status === 'loading' && <p>Loading word…</p>}
       {status === 'error' && <p>{error}</p>}
 
@@ -112,7 +115,12 @@ function WordPage() {
             <p>Could not load your word: {serverError}</p>
           )}
           {serverStatus === 'success' && (
-            <SaveToCategory word={word} categories={categories} savedWordData={savedWordData} onSave={setSavedWord} />
+            <SaveToCategory
+              word={word}
+              categories={categories}
+              savedWordData={savedWordData}
+              onSave={setSavedWord}
+            />
           )}
           {savedWordData && <Note word={word} savedWordData={savedWordData} />}
         </>
