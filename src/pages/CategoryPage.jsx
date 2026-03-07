@@ -1,6 +1,11 @@
 import { Link, useParams } from "react-router";
 import { useEffect, useState } from "react";
-import { getCategories, getWordsByCategory } from "../api/api";
+import { getCategories, getWordsByCategory, deleteWord } from '../api/api.js';
+import {
+  isNetworkError,
+  getNetworkErrorMessage,
+  getGenericErrorMessage,
+} from '../utils/errors.js';
 
 function CategoryPage(){
   const {id} = useParams();
@@ -9,6 +14,7 @@ function CategoryPage(){
   const [words, setWords] = useState([]);
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -36,9 +42,22 @@ function CategoryPage(){
         );
       }
     }
-
     load();
   }, [id]);
+
+  async function handleDeleteWord(wordId) {
+    try{
+      setDeleteError(null);
+      await deleteWord(wordId)
+      setWords((prev) => prev.filter((w) => w.id !== wordId));
+    } catch {
+      setDeleteError(
+        isNetworkError(e)
+          ? getNetworkErrorMessage()
+          : e.message || getGenericErrorMessage()
+      );  
+    }
+  }
 
 
   return (
@@ -56,6 +75,7 @@ function CategoryPage(){
           ) : (
             <>
               <h1>{category.name}</h1>
+              {deleteError && <p>{deleteError}</p>}
               {words.length === 0 ? (
                 <p>No words in this category yet.</p>
               ) : (
@@ -65,6 +85,9 @@ function CategoryPage(){
                       <Link to={`/word/${encodeURIComponent(w.text)}`}>
                         {w.text}
                       </Link>
+                      <button onClick={() => handleDeleteWord(w.id)}>
+                        Remove
+                      </button>
                     </li>
                   ))}
                 </ul>
