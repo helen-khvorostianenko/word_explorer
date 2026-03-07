@@ -14,12 +14,9 @@ import {
   getWord,
   saveWord,
   updatedWordCategory,
-  saveNote,
-  getNote,
-  updateNote,
-  deleteNote,
 } from '../api/api.js';
 
+import Note from '../features/word/Note.jsx'
 const TABS = [
   { key:'rel_syn', label: 'Synonyms' },
   { key:'rel_rhy', label: 'Rhymes' },
@@ -48,12 +45,6 @@ function WordPage() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [savedWordData, setSavedWord] = useState(null);
   const [saveMessage, setSaveMessage] = useState('');
-  
-  const [note, setNote] = useState('');
-  const [noteStatus, setNoteStatus] = useState('idle'); 
-  const [noteId, setNoteId] = useState(null);
-  const noteTimeoutRef = useRef(null);
-  const isNoteInitialLoad = useRef(true);
 
   useEffect(() => {
     if (!word) return;
@@ -91,11 +82,6 @@ function WordPage() {
 
   useEffect(() => {
     setActiveTab(TABS[0].key);
-
-    setNote('');
-    setNoteId(null);
-    setNoteStatus('idle');
-    isNoteInitialLoad.current = true;
   }, [word]);
 
   useEffect(() => {
@@ -202,72 +188,6 @@ function WordPage() {
       }, 3000);
     } catch (e) {
        setSaveMessage("Failed to save word.");
-    }
-  }
-
-  useEffect(() => {
-    if (!savedWordData) return;
-
-    async function loadNote() {
-      try {
-        const data = await getNote(word);
-        if (data) {
-          setNote(data.text);
-          setNoteId(data.id);
-        }
-      } catch {
-      } finally {
-        isNoteInitialLoad.current = false;
-      }
-    }
-    loadNote();
-  }, [savedWordData]);
-
-  useEffect(() => {
-    if ( isNoteInitialLoad.current) return;
-    if (!noteId && !note.trim()) return;
-
-    clearTimeout(noteTimeoutRef.current);
-    setNoteStatus("saving");
-
-    noteTimeoutRef.current = setTimeout(async () => {
-      try {
-        let data;
-        if (!noteId) {
-          data = await saveNote(word, note);
-          setNoteId(data.id);
-        } else {
-          await updateNote(noteId, note);
-        }
-        setNoteStatus('saved');
-      } catch {
-        setNoteStatus('error');
-      }
-    }, 800);
-
-    return () => clearTimeout(noteTimeoutRef.current);
-  }, [note]);
-
-  async function handleDeleteNote() {
-    if (!noteId) return;
-
-    await deleteNote(noteId);
-
-    setNote('');
-    setNoteId(null);
-    setNoteStatus('idle');
-  }
-
-  function renderNoteStatus(status) {
-    switch (status) {
-      case 'saving':
-        return <p>Saving…</p>;
-      case 'saved':
-        return <p>✓ Saved</p>;
-      case 'error':
-        return <p>Failed to save note</p>;
-      default:
-        return null;
     }
   }
 
@@ -398,25 +318,11 @@ function WordPage() {
               </>
             )}
           </section>
-          {savedWordData && (
-            <section>
-              <h2>Notes</h2>
-              <textarea
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Write your note..."
-                rows={4}
-              />
-              {noteId && (
-                <button onClick={handleDeleteNote}>Delete note</button>
-              )}
-              {renderNoteStatus(noteStatus)}
-            </section>
-          )}
+          {savedWordData && <Note word={word} savedWordData={savedWordData}/>}
         </>
       )}
     </main>
   );
 }
 
-export default WordPage
+export default WordPage;
