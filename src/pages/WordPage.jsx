@@ -41,6 +41,9 @@ function WordPage() {
   const tabsControllerRef = useRef(null);
   const tabsCacheRef = useRef({});
 
+  const [serverStatus, setServerStatus] = useState('idle');
+  const [serverError, setServerError] = useState(null);
+
   const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState("");
   const [savedWord, setSavedWord] = useState(null);
@@ -151,17 +154,34 @@ function WordPage() {
   }, [word, activeTab]);
 
   useEffect(() => {
-    async function loadWordData(params) {
-      const[cats, data] = await Promise.all([
-        getCategories(),
-        getWord(word)
-      ])
-      setCategories(cats);
-      if (data) {
-        setSavedWord(data);
-        setSelectedCategory(data.categoryId || '');
-      } else {
-        setSelectedCategory('');
+    async function loadWordData() {
+      try {
+        setServerStatus('loading');
+        setServerError(null);
+
+        const [cats, data] = await Promise.all([
+          getCategories(),
+          getWord(word),
+        ]);
+
+        setCategories(cats);
+
+        if (data) {
+          setSavedWord(data);
+          setSelectedCategory(data.categoryId || '');
+        } else {
+          setSavedWord(null);
+          setSelectedCategory('');
+        }
+
+        setServerStatus('success');
+      } catch (e) {
+        setServerStatus('error');
+        setServerError(
+          isNetworkError(e)
+            ? getNetworkErrorMessage()
+            : e.message || getGenericErrorMessage()
+        );
       }
     }
     loadWordData();
@@ -306,46 +326,54 @@ function WordPage() {
             )}
           </section>
           <section>
-            {!savedWord && (
+            {serverStatus === 'loading' && <p>Loading your word list…</p>}
+            {serverStatus === 'error' && (
+              <p>Could not load your word list: {serverError}</p>
+            )}
+            {serverStatus === 'success' && (
               <>
-                <h2>Save the word into your list</h2>
-                <p>Select a category to save this word.</p>
+                {!savedWord && (
+                  <>
+                    <h2>Save the word into your list</h2>
+                    <p>Select a category to save this word.</p>
+                  </>
+                )}
+                {savedWord && (
+                  <>
+                    <h2>Saved in your list</h2>
+                    <p>
+                      This word is saved in <strong>{savedCategoryName}</strong>
+                    </p>
+                  </>
+                )}
+                <p>Category:</p>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleSaveWord}
+                  disabled={!selectedCategory || !isCategoryChanged}
+                  title={!selectedCategory ? 'Select a category first' : ''}
+                >
+                  {!savedWord ? 'Save word' : 'Update category'}
+                </button>
+                {isCategoryChanged && (
+                  <p>
+                    Category changed. Click <strong>Update category</strong> to
+                    save.
+                  </p>
+                )}
+                {saveMessage && <p>{saveMessage}</p>}
               </>
             )}
-            {savedWord && (
-              <>
-                <h2>Saved in your list</h2>
-                <p>
-                  This word is saved in <strong>{savedCategoryName}</strong>
-                </p>
-              </>
-            )}
-            <p>Category:</p>
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-            >
-              <option value="">Select a category</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-            <button
-              onClick={handleSaveWord}
-              disabled={!selectedCategory || !isCategoryChanged}
-              title={!selectedCategory ? 'Select a category first' : ''}
-            >
-              {!savedWord ? 'Save word' : 'Update category'}
-            </button>
-            {isCategoryChanged && (
-              <p>
-                Category changed. Click <strong>Update category</strong> to
-                save.
-              </p>
-            )}
-            {saveMessage && <p>{saveMessage}</p>}
           </section>
           <section>
             <h2>Notes</h2>
