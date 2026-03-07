@@ -13,6 +13,7 @@
     "server": "json-server --watch db.json --port 3001"
   },
   "dependencies": {
+    "nanoid": "^5.1.6",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^7.13.1"

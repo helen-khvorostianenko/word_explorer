@@ -11,3 +11,7 @@ npm run server
 ## Start project
 
 npm run dev
+
+## Dependencies
+
+- **nanoid** — generates unique IDs for categories, words, and notes

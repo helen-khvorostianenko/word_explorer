@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { saveNote, getNote, updateNote, deleteNote } from '../../api/api.js';
 
 const DEBOUNCE_MS = 800;
-function Note({word, savedWordData}){
+function Note({wordId}){
   const [note, setNote] = useState('');
   const [noteStatus, setNoteStatus] = useState('idle');
   const [noteId, setNoteId] = useState(null);
@@ -15,14 +15,10 @@ function Note({word, savedWordData}){
     setNoteId(null);
     setNoteStatus('idle');
     isNoteInitialLoad.current = true;
-  }, [word]);
-
-  useEffect(() => {
-    if (!savedWordData) return;
 
     async function loadNote() {
       try {
-        const data = await getNote(word);
+        const data = await getNote(wordId);
         if (data) {
           setNote(data.text);
           setNoteId(data.id);
@@ -33,7 +29,7 @@ function Note({word, savedWordData}){
       }
     }
     loadNote();
-  }, [savedWordData]);
+  }, [wordId]);
 
   useEffect(() => {
     if (isNoteInitialLoad.current) return;
@@ -46,7 +42,7 @@ function Note({word, savedWordData}){
       try {
         let data;
         if (!noteId) {
-          data = await saveNote(word, note);
+          data = await saveNote(wordId, note);
           setNoteId(data.id);
         } else {
           await updateNote(noteId, note);
@@ -62,12 +58,15 @@ function Note({word, savedWordData}){
 
   async function handleDeleteNote() {
     if (!noteId) return;
-
-    await deleteNote(noteId);
-
-    setNote('');
-    setNoteId(null);
-    setNoteStatus('idle');
+    clearTimeout(noteTimeoutRef.current);
+    try {
+      await deleteNote(noteId);
+      setNote('');
+      setNoteId(null);
+      setNoteStatus('idle');
+    } catch {
+      setNoteStatus('error');
+    }
   }
 
   function renderNoteStatus() {

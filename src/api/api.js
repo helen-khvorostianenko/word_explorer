@@ -1,75 +1,114 @@
+import { nanoid } from 'nanoid';
+
 const API = 'http://localhost:3001';
 
 export async function getCategories() {
   const res = await fetch(`${API}/categories`);
-  if (!res.ok) {
-    throw new Error(`Failed to fetch categories: ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
 
-export async function getWordsByCategory(category) {
-  const res = await fetch(
-    `${API}/words?categoryId=${encodeURIComponent(category)}`
-  );
-  if (!res.ok) {
-    throw new Error(`Failed to fetch words for category "${category}": ${res.status}`);
-  }
-  const data = await res.json();
-  return Array.isArray(data) ? data : [];
-}
-
-export async function getWord(wordId) {
-  const res = await fetch(`${API}/words/${encodeURIComponent(wordId)}`);
-  if (res.status === 404) return null;
-  if (!res.ok) {
-    throw new Error(`Failed to fetch word "${wordId}": ${res.status}`);
-  }
+export async function createCategory(name) {
+  const res = await fetch(`${API}/categories`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      id: nanoid(8),
+      name,
+      createdAt: Date.now(),
+    }),
+  });
+  if (!res.ok) throw new Error(`Failed to create category: ${res.status}`);
   return res.json();
-} 
+}
 
-export async function updatedWordCategory(wordId, newCategoryId) {
+export async function updateCategory(categoryId, name) {
+  const res = await fetch(
+    `${API}/categories/${encodeURIComponent(categoryId)}`,
+    {
+      method: 'PATCH',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name }),
+    }
+  );
+  if (!res.ok) throw new Error(`Failed to update category: ${res.status}`);
+  return res.json();
+}
+
+export async function deleteCategory(categoryId) {
+  const res = await fetch(
+    `${API}/categories/${encodeURIComponent(categoryId)}`,
+    {
+      method: 'DELETE',
+    }
+  );
+  if (!res.ok) throw new Error(`Failed to delete category: ${res.status}`);
+  return res.json();
+}
+export async function getWordsByCategory(categoryId) {
+  const res = await fetch(
+    `${API}/words?categoryId=${encodeURIComponent(categoryId)}`
+  );
+  if (!res.ok)
+    throw new Error(
+      `Failed to fetch words for category "${category}": ${res.status}`
+    );
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
+export async function getWord(wordText) {
+  const res = await fetch(`${API}/words?text=${encodeURIComponent(wordText)}`);
+  if (res.status === 404) return null;
+  if (!res.ok)
+    throw new Error(`Failed to fetch word "${wordText}": ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) && data.length > 0 ? data[0] : null;
+}
+
+export async function saveWord(wordText, categoryId) {
+  const res = await fetch(`${API}/words`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      id: nanoid(8),
+      text: wordText,
+      categoryId,
+      addedAt: Date.now(),
+    }),
+  });
+  if (!res.ok) throw new Error(`Failed to save word "${word}": ${res.status}`);
+  return res.json();
+}
+
+export async function updateWordCategory(wordId, newCategoryId) {
   const res = await fetch(`${API}/words/${encodeURIComponent(wordId)}`, {
     method: 'PATCH',
     headers: {
       'content-type': 'application/json',
     },
-    body: JSON.stringify({ 
+    body: JSON.stringify({
       categoryId: newCategoryId,
       updatedAt: Date.now(),
-     }),
+    }),
   });
-  if (!res.ok){
-    throw new Error(`Failed to update category for word "${wordId}": ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`Failed to update word category: ${res.status}`);
   return res.json();
 }
 
-export async function saveWord(word, categoryId) {
-  const res = await fetch(`${API}/words`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      id: word.toLowerCase(),
-      text: word,
-      categoryId,
-      addedAt: Date.now(),
-    })
+export async function deleteWord(wordId) {
+  const res = await fetch(`${API}/words/${encodeURIComponent(wordId)}`, {
+    method: 'DELETE',
   });
-  if (!res.ok) {
-    throw new Error(`Failed to save word "${word}": ${res.status}`);
-  }
+  if (!res.ok) throw new Error(`Failed to delete word: ${res.status}`);
   return res.json();
 }
 
 export async function getNote(wordId) {
   const res = await fetch(`${API}/notes?wordId=${encodeURIComponent(wordId)}`);
-  if (!res.ok) {
+  if (!res.ok)
     throw new Error(`Failed to fetch note for word "${wordId}": ${res.status}`);
-  }
   const data = await res.json();
   return Array.isArray(data) ? data[0] : null;
 }
@@ -81,25 +120,14 @@ export async function saveNote(wordId, text) {
       'content-type': 'application/json',
     },
     body: JSON.stringify({
-      id: `note-${wordId.toLowerCase()}`,
+      id: nanoid(8),
       wordId,
       text,
       updatedAt: Date.now(),
     }),
   });
-  if (!res.ok) {
+  if (!res.ok)
     throw new Error(`Failed to save note for word "${wordId}": ${res.status}`);
-  }
-  return res.json();
-}
-
-export async function deleteNote(noteId) {
-  const res = await fetch(`${API}/notes/${encodeURIComponent(noteId)}`, {
-    method: `DELETE`,
-  });
-  if (!res.ok) {
-    throw new Error(`Failed to delete note "${noteId}": ${res.status}`);
-  }
   return res.json();
 }
 
@@ -114,8 +142,15 @@ export async function updateNote(noteId, text) {
       updatedAt: Date.now(),
     }),
   });
-  if (!res.ok) {
-    throw new Error(`Failed to update note "${noteId}": ${res.status}`);
-  }
-  return res.json();  
+  if (!res.ok) throw new Error(`Failed to update note : ${res.status}`);
+  return res.json();
+}
+
+export async function deleteNote(noteId) {
+  const res = await fetch(`${API}/notes/${encodeURIComponent(noteId)}`, {
+    method: `DELETE`,
+  });
+  if (!res.ok)
+    throw new Error(`Failed to delete note "${noteId}": ${res.status}`);
+  return res.json();
 }

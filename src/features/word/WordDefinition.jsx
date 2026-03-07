@@ -12,8 +12,8 @@ function WordDefinition({ card }) {
           <p>—</p>
         ) : (
           <div>
-            {card.definitionsByPos.map((group) => (
-              <div key={group.partOfSpeech}>
+            {card.definitionsByPos.map((group, idx) => (
+              <div key={`${group.partOfSpeech}-${idx}`}>
                 <em>{group.partOfSpeech}</em>
                 <ol>
                   {group.definitions.map((def, idx) => (

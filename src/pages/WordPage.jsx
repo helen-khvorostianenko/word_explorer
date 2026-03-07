@@ -68,6 +68,7 @@ function WordPage() {
       try {
         setServerStatus('loading');
         setServerError(null);
+        setSavedWord(null);
 
         const [cats, data] = await Promise.all([
           getCategories(),
@@ -94,7 +95,7 @@ function WordPage() {
     }
     loadWordData();
   }, [word]);
-
+console.log(savedWordData);
   return (
     <main>
       <div>
@@ -122,7 +123,9 @@ function WordPage() {
               onSave={setSavedWord}
             />
           )}
-          {savedWordData && <Note word={word} savedWordData={savedWordData} />}
+          {savedWordData && (
+            <Note wordId={savedWordData.id} />
+          )}
         </>
       )}
     </main>

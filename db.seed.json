@@ -1,78 +1,83 @@
 {
   "categories": [
     {
-      "id": "dev-basics",
-      "name": "Developer Basics",
+      "id": "mK9pLx2R",
+      "name": "Tech & Engineering",
+      "createdAt": 1700000000000
+    },
+    {
+      "id": "nQ4wYt7Z",
+      "name": "Professional Communication",
       "createdAt": 1700000000000
     }
   ],
   "words": [
     {
-      "id": "debug",
-      "text": "debug",
-      "categoryId": "dev-basics",
+      "id": "wA1bCd2E",
+      "text": "abstraction",
+      "categoryId": "mK9pLx2R",
       "addedAt": 1700000000000
     },
     {
-      "id": "function",
-      "text": "function",
-      "categoryId": "dev-basics",
+      "id": "wF3gHi4J",
+      "text": "refactor",
+      "categoryId": "mK9pLx2R",
       "addedAt": 1700000000000
     },
     {
-      "id": "array",
-      "text": "array",
-      "categoryId": "dev-basics",
+      "id": "wK5lMn6O",
+      "text": "latency",
+      "categoryId": "mK9pLx2R",
       "addedAt": 1700000000000
     },
     {
-      "id": "object",
-      "text": "object",
-      "categoryId": "dev-basics",
+      "id": "wP7qRs8T",
+      "text": "scalable",
+      "categoryId": "mK9pLx2R",
       "addedAt": 1700000000000
     },
     {
-      "id": "variable",
-      "text": "variable",
-      "categoryId": "dev-basics",
+      "id": "wU9vWx0Y",
+      "text": "idempotent",
+      "categoryId": "mK9pLx2R",
       "addedAt": 1700000000000
     },
     {
-      "id": "commit",
-      "text": "commit",
-      "categoryId": "dev-basics",
+      "id": "wB2cDe3F",
+      "text": "concise",
+      "categoryId": "nQ4wYt7Z",
       "addedAt": 1700000000000
     },
     {
-      "id": "deploy",
-      "text": "deploy",
-      "categoryId": "dev-basics",
+      "id": "wG4hIj5K",
+      "text": "elaborate",
+      "categoryId": "nQ4wYt7Z",
       "addedAt": 1700000000000
     },
     {
-      "id": "server",
-      "text": "server",
-      "categoryId": "dev-basics",
+      "id": "wL6mNo7P",
+      "text": "clarify",
+      "categoryId": "nQ4wYt7Z",
       "addedAt": 1700000000000
     },
     {
-      "id": "client",
-      "text": "client",
-      "categoryId": "dev-basics",
+      "id": "wQ8rSt9U",
+      "text": "articulate",
+      "categoryId": "nQ4wYt7Z",
       "addedAt": 1700000000000
     },
     {
-      "id": "syntax",
-      "text": "syntax",
-      "categoryId": "dev-basics",
+      "id": "wV0wXy1Z",
+      "text": "reiterate",
+      "categoryId": "nQ4wYt7Z",
       "addedAt": 1700000000000
     }
   ],
   "notes": [
     {
-      "id": "note-debug",
-      "wordId": "debug",
-      "text": "Finding and fixing bugs in code",
+      "id": "nA2bCd3E",
+      "wordId": "wU9vWx0Y",
+      "text": "An operation is idempotent if doing it multiple times has the same effect as doing it once. e.g. HTTP PUT is idempotent, POST is not.",
       "updatedAt": 1700000000000
     }
   ]
