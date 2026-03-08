@@ -1,5 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
+import CategoryForm from '../features/word/categories/CategoryForm.jsx';
 import {
   getCategories,
   getWordsByCategory,
@@ -28,7 +29,6 @@ function CategoryPage() {
   const [deleteWordError, setDeleteWordError] = useState(null);
   const [deleteCategoryError, setDeleteCategoryError] = useState(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
-
 
   useEffect(() => {
     async function load() {
@@ -89,9 +89,19 @@ function CategoryPage() {
   }
 
   function handleStartRename() {
+    console.log(category);
     setRenameValue(category.name);
     setRenameError(null);
     setIsRenaming(true);
+  }
+
+  function handleChange(e) {
+    setRenameValue(e.target.value);
+  }
+
+  function handleCancel(){
+    setIsRenaming(false);
+    setRenameError(null);
   }
 
   async function handleRename(e) {
@@ -133,20 +143,14 @@ function CategoryPage() {
           ) : (
             <>
               {isRenaming ? (
-                <form onSubmit={handleRename}>
-                  <label htmlFor="rename">Category name</label>
-                  <input
-                    id="rename"
-                    value={renameValue}
-                    onChange={(e) => setRenameValue(e.target.value)}
-                    autoFocus
-                  />
-                  <button type="submit">Save</button>
-                  <button type="button" onClick={() => setIsRenaming(false)}>
-                    Cancel
-                  </button>
-                  {renameError && <p>{renameError}</p>}
-                </form>
+                <CategoryForm
+                  value={renameValue}
+                  error={renameError}
+                  onSubmit={handleRename}
+                  onChange={handleChange}
+                  onCancel={handleCancel}
+                  submitLabel="Save"
+                />
               ) : (
                 <>
                   <h1>{category.name}</h1>
@@ -187,7 +191,9 @@ function CategoryPage() {
                   <div>
                     <p>Are you sure? This cannot be undone.</p>
                     <button onClick={handleDeleteCategory}>Yes, delete</button>
-                    <button onClick={() => setConfirmDelete(false)}>Cancel</button>
+                    <button onClick={() => setConfirmDelete(false)}>
+                      Cancel
+                    </button>
                   </div>
                 )}
               </section>
