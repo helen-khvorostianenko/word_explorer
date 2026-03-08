@@ -95,7 +95,7 @@ function WordPage() {
     }
     loadWordData();
   }, [word]);
-console.log(savedWordData);
+  
   return (
     <main>
       <div>

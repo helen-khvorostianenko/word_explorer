@@ -1,6 +1,6 @@
 import { Link, useParams, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
-import CategoryForm from '../features/word/categories/CategoryForm.jsx';
+import CategoryForm from '../features/categories/CategoryForm.jsx';
 import {
   getCategories,
   getWordsByCategory,
@@ -63,7 +63,7 @@ function CategoryPage() {
     try {
       await Promise.all(words.map((word) => deleteWord(word.id)));
       await deleteCategory(id);
-      navigate('/')
+      navigate('/');
     } catch (e) {
       setConfirmDelete(false);
       setDeleteCategoryError(
@@ -89,7 +89,6 @@ function CategoryPage() {
   }
 
   function handleStartRename() {
-    console.log(category);
     setRenameValue(category.name);
     setRenameError(null);
     setIsRenaming(true);
