@@ -1,5 +1,11 @@
-import { useParams, Link} from "react-router";
+import { useParams} from "react-router";
 import { useEffect, useState} from 'react';
+import Note from '../features/word/Note.jsx';
+import WordDefinition from '../features/word/WordDefinition.jsx';
+import RelatedWords from '../features/word/RelatedWords.jsx';
+import SaveToCategory from '../features/word/SaveToCategory.jsx';
+import SearchBar from '../shared/SearchBar.jsx';
+import PageLayout from '../shared/PageLayout.jsx';
 import {
   isNetworkError,
   getNetworkErrorMessage,
@@ -11,12 +17,6 @@ import {
   getCategories,
   getWord,
 } from '../api/api.js';
-
-import Note from '../features/word/Note.jsx'
-import WordDefinition from '../features/word/WordDefinition.jsx';
-import RelatedWords from "../features/word/RelatedWords.jsx";
-import SaveToCategory from "../features/word/SaveToCategory.jsx";
-import SearchBar from "../shared/SearchBar.jsx";
 
 function WordPage() {
   const { word } = useParams();
@@ -97,10 +97,7 @@ function WordPage() {
   }, [word]);
   
   return (
-    <main>
-      <div>
-        <Link to="/">Home</Link>
-      </div>
+    <PageLayout>
       <div>
         <SearchBar />
       </div>
@@ -123,12 +120,10 @@ function WordPage() {
               onSave={setSavedWord}
             />
           )}
-          {savedWordData && (
-            <Note wordId={savedWordData.id} />
-          )}
+          {savedWordData && <Note wordId={savedWordData.id} />}
         </>
       )}
-    </main>
+    </PageLayout>
   );
 }
 

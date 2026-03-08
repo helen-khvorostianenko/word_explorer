@@ -1,9 +1,11 @@
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
+import PageLayout from '../shared/PageLayout.jsx';
 import SearchBar from '../shared/SearchBar.jsx';
 import CategoryForm from '../features/categories/CategoryForm.jsx';
-import { useEffect, useState } from 'react';
 import { createCategory, getCategories } from '../api/api.js';
 import { getGenericErrorMessage, getNetworkErrorMessage, isNetworkError } from '../utils/errors.js';
-import { Link } from 'react-router';
+
 
 function HomePage() {
   const [categories, setCategories] = useState([]);
@@ -76,7 +78,7 @@ function HomePage() {
   }
 
   return (
-    <main>
+    <PageLayout>
       <h1>Word Explorer</h1>
       <SearchBar />
       <section>
@@ -97,21 +99,20 @@ function HomePage() {
             </ul>
 
             {isCreating ? (
-              <CategoryForm 
+              <CategoryForm
                 value={newName}
                 error={createError}
-                onSubmit = {handleCreate}
-                onChange = {handleChange}
-                onCancel = {handleCancel}
+                onSubmit={handleCreate}
+                onChange={handleChange}
+                onCancel={handleCancel}
               />
             ) : (
-              <button onClick={()=> setIsCreating(true)}>+ New List</button>
+              <button onClick={() => setIsCreating(true)}>+ New List</button>
             )}
-           
           </>
         )}
       </section>
-    </main>
+    </PageLayout>
   );
 }
 export default HomePage;

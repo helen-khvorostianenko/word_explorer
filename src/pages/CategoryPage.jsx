@@ -13,6 +13,7 @@ import {
   getNetworkErrorMessage,
   getGenericErrorMessage,
 } from '../utils/errors.js';
+import PageLayout from '../shared/PageLayout.jsx';
 
 function CategoryPage() {
   const { id } = useParams();
@@ -129,9 +130,7 @@ function CategoryPage() {
   }
 
   return (
-    <main>
-      <Link to="/">Home</Link>
-
+    <PageLayout>
       {status === 'loading' && <p>Loading…</p>}
       {status === 'error' && <p>{error}</p>}
 
@@ -200,7 +199,7 @@ function CategoryPage() {
           )}
         </>
       )}
-    </main>
+    </PageLayout>
   );
 }
 
