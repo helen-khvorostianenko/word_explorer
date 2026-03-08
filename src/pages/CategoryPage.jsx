@@ -1,10 +1,11 @@
-import { Link, useParams } from 'react-router';
+import { Link, useParams, useNavigate } from 'react-router';
 import { useEffect, useState } from 'react';
 import {
   getCategories,
   getWordsByCategory,
   deleteWord,
   updateCategory,
+  deleteCategory,
 } from '../api/api.js';
 import {
   isNetworkError,
@@ -14,16 +15,20 @@ import {
 
 function CategoryPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [category, setCategory] = useState(null);
   const [words, setWords] = useState([]);
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
-  const [deleteError, setDeleteError] = useState(null);
 
   const [isRenaming, setIsRenaming] = useState(false);
   const [renameValue, setRenameValue] = useState('');
   const [renameError, setRenameError] = useState(null);
+  const [deleteWordError, setDeleteWordError] = useState(null);
+  const [deleteCategoryError, setDeleteCategoryError] = useState(null);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+
 
   useEffect(() => {
     async function load() {
@@ -53,14 +58,29 @@ function CategoryPage() {
     }
     load();
   }, [id]);
-  
+
+  async function handleDeleteCategory() {
+    try {
+      await Promise.all(words.map((word) => deleteWord(word.id)));
+      await deleteCategory(id);
+      navigate('/')
+    } catch (e) {
+      setConfirmDelete(false);
+      setDeleteCategoryError(
+        isNetworkError(e) 
+          ? getNetworkErrorMessage()
+          : e.message || getGenericErrorMessage() 
+      );
+    }
+    
+  }
   async function handleDeleteWord(wordId) {
     try {
-      setDeleteError(null);
+      setDeleteWordError(null);
       await deleteWord(wordId);
-      setWords((prev) => prev.filter((w) => w.id !== wordId));
+      setWords((prev) => prev.filter((word) => word.id !== wordId));
     } catch (e) {
-      setDeleteError(
+      setDeleteWordError(
         isNetworkError(e)
           ? getNetworkErrorMessage()
           : e.message || getGenericErrorMessage()
@@ -133,7 +153,9 @@ function CategoryPage() {
                   <button onClick={handleStartRename}>Rename</button>
                 </>
               )}
-              {deleteError && <p>{deleteError}</p>}
+
+              {deleteWordError && <p>{deleteWordError}</p>}
+
               {words.length === 0 ? (
                 <p>No words in this category yet.</p>
               ) : (
@@ -150,6 +172,25 @@ function CategoryPage() {
                   ))}
                 </ul>
               )}
+              <section>
+                <h2>Danger zone</h2>
+                <p>
+                  Deleting this category will permanently remove all saved words
+                  and their notes.
+                </p>
+                {deleteCategoryError && <p>{deleteCategoryError}</p>}
+                {!confirmDelete ? (
+                  <button onClick={() => setConfirmDelete(true)}>
+                    Delete category
+                  </button>
+                ) : (
+                  <div>
+                    <p>Are you sure? This cannot be undone.</p>
+                    <button onClick={handleDeleteCategory}>Yes, delete</button>
+                    <button onClick={() => setConfirmDelete(false)}>Cancel</button>
+                  </div>
+                )}
+              </section>
             </>
           )}
         </>
