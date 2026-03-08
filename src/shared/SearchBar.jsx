@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from 'react-router';
 import {
   isNetworkError,
@@ -79,17 +79,18 @@ function SearchBar({ savedWords = [] }) {
     };
   }, [query]);
 
-  function handleSubmit (e) {
-    e.preventDefault();
-    const word = query.trim();
-    if (!word) return;
-    navigate(`/word/${encodeURIComponent(word)}`);
-  };
+  const handleSubmit = useCallback((e) => {
+      e.preventDefault();
+      const word = query.trim();
+      if (!word) return;
+      navigate(`/word/${encodeURIComponent(word)}`);
+    }, [query, navigate]);
 
-  function handleSelect (word) {
+  const handleSelect = useCallback((word) => {
     setQuery('');
     navigate(`/word/${encodeURIComponent(word)}`);
-  };
+  }, navigate);
+
   return (
     <div>
       <form onSubmit={handleSubmit}>
