@@ -6,6 +6,9 @@ function CategoryForm({
   onCancel,
   submitLabel = 'Create'
 }) {
+  function handleKeyDown(e) {
+    if (e.key === 'Escape') onCancel();
+  }
   return (
     <form onSubmit={onSubmit}>
       <label htmlFor="category-name">List name</label>
