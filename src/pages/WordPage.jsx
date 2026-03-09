@@ -99,7 +99,10 @@ function WordPage() {
   return (
     <PageLayout>
       <div>
-        <SearchBar />
+        <SearchBar
+          savedWords={savedWordData ? [savedWordData] : []}
+          categories={categories}
+        />
       </div>
       {status === 'loading' && <p>Loading word…</p>}
       {status === 'error' && <p>{error}</p>}

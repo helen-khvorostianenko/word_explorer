@@ -1,6 +1,6 @@
 
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useNavigate } from 'react-router';
+import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useNavigate, Link } from 'react-router';
 import {
   isNetworkError,
   getNetworkErrorMessage,
@@ -14,7 +14,7 @@ function buildSuggestUrl(prefix) {
   url.searchParams.set('max', 10);
   return url.toString();
 }
-function SearchBar({ savedWords = [] }) {
+function SearchBar({ savedWords = [], categories = [] }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
@@ -23,6 +23,14 @@ function SearchBar({ savedWords = [] }) {
 
   const controllerRef = useRef(null);
   const cacheRef = useRef({});
+
+  const savedWordsMap = useMemo(() => {
+    return new Map (savedWords.map((word) => [word.text.toLowerCase(), word]));
+  }, [savedWords]);
+
+  const categoriesMap = useMemo(() => {
+    return new Map(categories.map((cat) => [cat.id, cat.name]));
+  }, [categories]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -79,17 +87,20 @@ function SearchBar({ savedWords = [] }) {
     };
   }, [query]);
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = useCallback(
+    (e) => {
       e.preventDefault();
       const word = query.trim();
       if (!word) return;
       navigate(`/word/${encodeURIComponent(word)}`);
-    }, [query, navigate]);
+    },
+    [query, navigate]
+  );
 
   const handleSelect = useCallback((word) => {
     setQuery('');
     navigate(`/word/${encodeURIComponent(word)}`);
-  }, navigate);
+  }, [navigate]);
 
   return (
     <div>
@@ -111,13 +122,24 @@ function SearchBar({ savedWords = [] }) {
       )}
       {suggestions.length > 0 && (
         <ul>
-          {suggestions.map((item) => (
-            <li key={item.word}>
-              <button type="button" onClick={() => handleSelect(item.word)}>
-                {item.word}
-              </button>
-            </li>
-          ))}
+          {suggestions.map((item) => {
+            const saved = savedWordsMap.get(item.word.toLowerCase());
+            const categoryName = saved
+              ? categoriesMap.get(saved.categoryId)
+              : null;
+            return (
+              <li key={item.word}>
+                <button type="button" onClick={() => handleSelect(item.word)}>
+                  {item.word}
+                </button>
+                {saved && categoryName && (
+                  <Link to={`/categories/${saved.categoryId}`}>
+                    {categoryName}
+                  </Link>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>

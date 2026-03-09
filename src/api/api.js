@@ -1,16 +1,16 @@
 import { nanoid } from 'nanoid';
 
-const API = 'http://localhost:3001';
+const SERVER_BASE_URL = 'http://localhost:3001';
 
 export async function getCategories() {
-  const res = await fetch(`${API}/categories`);
+  const res = await fetch(`${SERVER_BASE_URL}/categories`);
   if (!res.ok) throw new Error(`Failed to fetch categories: ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
 
 export async function createCategory(name) {
-  const res = await fetch(`${API}/categories`, {
+  const res = await fetch(`${SERVER_BASE_URL}/categories`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -25,7 +25,7 @@ export async function createCategory(name) {
 
 export async function updateCategory(categoryId, name) {
   const res = await fetch(
-    `${API}/categories/${encodeURIComponent(categoryId)}`,
+    `${SERVER_BASE_URL}/categories/${encodeURIComponent(categoryId)}`,
     {
       method: 'PATCH',
       headers: { 'content-type': 'application/json' },
@@ -38,7 +38,7 @@ export async function updateCategory(categoryId, name) {
 
 export async function deleteCategory(categoryId) {
   const res = await fetch(
-    `${API}/categories/${encodeURIComponent(categoryId)}`,
+    `${SERVER_BASE_URL}/categories/${encodeURIComponent(categoryId)}`,
     {
       method: 'DELETE',
     }
@@ -48,27 +48,30 @@ export async function deleteCategory(categoryId) {
 }
 export async function getWordsByCategory(categoryId) {
   const res = await fetch(
-    `${API}/words?categoryId=${encodeURIComponent(categoryId)}`
+    `${SERVER_BASE_URL}/words?categoryId=${encodeURIComponent(categoryId)}`
   );
-  if (!res.ok)
-    throw new Error(
-      `Failed to fetch words for category "${category}": ${res.status}`
-    );
+  if (!res.ok) throw new Error( `Failed to fetch words for category "${category}": ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
 
 export async function getWord(wordText) {
-  const res = await fetch(`${API}/words?text=${encodeURIComponent(wordText)}`);
+  const res = await fetch(`${SERVER_BASE_URL}/words?text=${encodeURIComponent(wordText)}`);
   if (res.status === 404) return null;
-  if (!res.ok)
-    throw new Error(`Failed to fetch word "${wordText}": ${res.status}`);
+  if (!res.ok) throw new Error(`Failed to fetch word "${wordText}": ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) && data.length > 0 ? data[0] : null;
 }
 
+export async function getAllWords() {
+  const res = await fetch(`${SERVER_BASE_URL}/words`);
+  if (!res.ok) throw new Error(`Failed to fetch words: ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
 export async function saveWord(wordText, categoryId) {
-  const res = await fetch(`${API}/words`, {
+  const res = await fetch(`${SERVER_BASE_URL}/words`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
@@ -83,7 +86,7 @@ export async function saveWord(wordText, categoryId) {
 }
 
 export async function updateWordCategory(wordId, newCategoryId) {
-  const res = await fetch(`${API}/words/${encodeURIComponent(wordId)}`, {
+  const res = await fetch(`${SERVER_BASE_URL}/words/${encodeURIComponent(wordId)}`, {
     method: 'PATCH',
     headers: {
       'content-type': 'application/json',
@@ -98,7 +101,7 @@ export async function updateWordCategory(wordId, newCategoryId) {
 }
 
 export async function deleteWord(wordId) {
-  const res = await fetch(`${API}/words/${encodeURIComponent(wordId)}`, {
+  const res = await fetch(`${SERVER_BASE_URL}/words/${encodeURIComponent(wordId)}`, {
     method: 'DELETE',
   });
   if (!res.ok) throw new Error(`Failed to delete word: ${res.status}`);
@@ -106,7 +109,7 @@ export async function deleteWord(wordId) {
 }
 
 export async function getNote(wordId) {
-  const res = await fetch(`${API}/notes?wordId=${encodeURIComponent(wordId)}`);
+  const res = await fetch(`${SERVER_BASE_URL}/notes?wordId=${encodeURIComponent(wordId)}`);
   if (!res.ok)
     throw new Error(`Failed to fetch note for word "${wordId}": ${res.status}`);
   const data = await res.json();
@@ -114,7 +117,7 @@ export async function getNote(wordId) {
 }
 
 export async function saveNote(wordId, text) {
-  const res = await fetch(`${API}/notes`, {
+  const res = await fetch(`${SERVER_BASE_URL}/notes`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -132,7 +135,7 @@ export async function saveNote(wordId, text) {
 }
 
 export async function updateNote(noteId, text) {
-  const res = await fetch(`${API}/notes/${encodeURIComponent(noteId)}`, {
+  const res = await fetch(`${SERVER_BASE_URL}/notes/${encodeURIComponent(noteId)}`, {
     method: 'PATCH',
     headers: {
       'content-type': 'application/json',
@@ -147,7 +150,7 @@ export async function updateNote(noteId, text) {
 }
 
 export async function deleteNote(noteId) {
-  const res = await fetch(`${API}/notes/${encodeURIComponent(noteId)}`, {
+  const res = await fetch(`${SERVER_BASE_URL}/notes/${encodeURIComponent(noteId)}`, {
     method: `DELETE`,
   });
   if (!res.ok)

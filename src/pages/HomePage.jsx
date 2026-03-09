@@ -3,9 +3,8 @@ import { Link } from 'react-router';
 import PageLayout from '../shared/PageLayout.jsx';
 import SearchBar from '../shared/SearchBar.jsx';
 import CategoryForm from '../features/categories/CategoryForm.jsx';
-import { createCategory, getCategories } from '../api/api.js';
+import { createCategory, getAllWords, getCategories } from '../api/api.js';
 import { getGenericErrorMessage, getNetworkErrorMessage, isNetworkError } from '../utils/errors.js';
-
 
 function HomePage() {
   const [categories, setCategories] = useState([]);
@@ -16,14 +15,17 @@ function HomePage() {
   const [newName, setNewName] = useState('');
   const [createError, setCreateError] = useState(null);
 
+  const [allWords, setAllWords] = useState([]);
+
 
   useEffect(() => {
     async function load() {
       try{
         setStatus('loading');
         setError(null);
-        const data = await getCategories();
-        setCategories(data);
+        const [cats, words] = await Promise.all([getCategories(), getAllWords()]);
+        setCategories(cats);
+        setAllWords(words);
         setStatus('success');
       } catch (e) {
         setStatus('error');
@@ -80,7 +82,7 @@ function HomePage() {
   return (
     <PageLayout>
       <h1>Word Explorer</h1>
-      <SearchBar />
+      <SearchBar savedWords={allWords} categories={categories}/>
       <section>
         <h2>Your lists</h2>
         {status === 'loading' && <p>Loading...</p>}
