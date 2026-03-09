@@ -25,7 +25,6 @@ function SearchBar({ savedWords = [], categories = [] }) {
 
   const controllerRef = useRef(null);
   const cacheRef = useRef({});
-  const listRef = useRef(null);
 
   const savedWordsMap = useMemo(() => {
     return new Map (savedWords.map((word) => [word.text.toLowerCase(), word]));
@@ -86,7 +85,7 @@ function SearchBar({ savedWords = [], categories = [] }) {
             : e.message || getGenericErrorMessage()
         );
       }
-    }, 300);
+    }, 500);
 
     return () => {
       clearTimeout(timeoutId);
@@ -115,7 +114,14 @@ function SearchBar({ savedWords = [], categories = [] }) {
     navigate(`/word/${encodeURIComponent(word)}`);
   }, [navigate]);
 
-  function handleKeyDown(e) {
+  const handleKeyDown = useCallback((e) => {
+    if (e.key === 'Escape') {
+      setQuery('');
+      setSuggestions([]);
+      setActiveIndex(-1);
+      return;
+    }
+
     if (!suggestions.length) return;
 
     switch (e.key) {
@@ -131,11 +137,6 @@ function SearchBar({ savedWords = [], categories = [] }) {
           prev > 0 ? prev - 1 : suggestions.length - 1
         );
         break;
-      case 'Escape':
-        setQuery('');
-        setSuggestions([]);
-        setActiveIndex(-1);
-        break;
       case 'Enter':
         if (activeIndex >= 0 && suggestions[activeIndex]) {
           e.preventDefault();
@@ -145,7 +146,9 @@ function SearchBar({ savedWords = [], categories = [] }) {
       default:
         break;
     }
-  }
+  },[suggestions, activeIndex, handleSelect]
+);
+
 
   return (
     <div>
@@ -158,37 +161,32 @@ function SearchBar({ savedWords = [], categories = [] }) {
           onKeyDown={handleKeyDown}
           autoComplete="off"
           placeholder="Type a word..."
-          aria-autocomplete="list"
-          aria-controls="search-suggestions"
-          aria-activedescendant={
-            activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined
-          }
         />
         <button type="submit">Search</button>
       </form>
+
       {status === 'loading' && <p>Loading...</p>}
       {status === 'error' && <p>{error}</p>}
       {status === 'success' && suggestions.length === 0 && (
         <p>No suggestions found</p>
       )}
+
       {suggestions.length > 0 && (
-        <ul id="search-suggestions" ref={listRef} role="listbox">
+        <ul>
           {suggestions.map((item, idx) => {
             const saved = savedWordsMap.get(item.word.toLowerCase());
             const categoryName = saved
               ? categoriesMap.get(saved.categoryId)
               : null;
+
             return (
               <li
                 key={item.word}
-                id={`suggestion-${idx}`}
-                role="option"
-                aria-selected={idx === activeIndex}
+                data-active={idx === activeIndex}
               >
                 <button
                   type="button"
                   onClick={() => handleSelect(item.word)}
-                  tabIndex={idx === activeIndex ? 0 : -1}
                 >
                   {item.word}
                 </button>
