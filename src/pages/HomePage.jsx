@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback} from 'react';
 import { Link } from 'react-router';
 import PageLayout from '../shared/PageLayout.jsx';
 import SearchBar from '../shared/SearchBar.jsx';
 import CategoryForm from '../features/categories/CategoryForm.jsx';
 import { createCategory, getAllWords, getCategories } from '../api/api.js';
 import { getGenericErrorMessage, getNetworkErrorMessage, isNetworkError } from '../utils/errors.js';
+
+const PREVIEW_WORDS_COUNT = 3;
+const PAGE_SIZE = 10;
 
 function HomePage() {
   const [categories, setCategories] = useState([]);
@@ -16,6 +19,7 @@ function HomePage() {
   const [createError, setCreateError] = useState(null);
 
   const [allWords, setAllWords] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
 
 
   useEffect(() => {
@@ -79,10 +83,32 @@ function HomePage() {
     }
   }
 
+  function getPreviewWords(catId) {
+    return allWords
+      .filter((word) => word.categoryId === catId)
+      .slice(0, PREVIEW_WORDS_COUNT);
+  }
+
+  const totalPages = Math.ceil(categories.length / PAGE_SIZE);
+  
+  const getPagedCategories = useCallback(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return categories.slice(start, start + PAGE_SIZE);
+  }, [categories, currentPage]);
+
+  const handlePrev = useCallback(() => {
+    setCurrentPage((page) => Math.max(1, page - 1));
+  }, []);
+
+  const handleNext = useCallback(() => {
+    setCurrentPage((page) => Math.min(totalPages, page + 1));
+  }, [totalPages]);
+
+
   return (
     <PageLayout>
       <h1>Word Explorer</h1>
-      <SearchBar savedWords={allWords} categories={categories}/>
+      <SearchBar savedWords={allWords} categories={categories} />
       <section>
         <h2>Your lists</h2>
         {status === 'loading' && <p>Loading...</p>}
@@ -92,13 +118,54 @@ function HomePage() {
             {categories.length === 0 && !isCreating && (
               <p>No lists yet. Create your first one!</p>
             )}
-            <ul>
-              {categories.map((cat) => (
-                <li key={cat.id}>
-                  <Link to={`/categories/${cat.id}`}>{cat.name}</Link>
-                </li>
-              ))}
+            <ul className="category-grid">
+              {getPagedCategories().map((cat) => {
+                const preview = getPreviewWords(cat.id);
+                const wordCount = allWords.filter(
+                  (w) => w.categoryId === cat.id
+                ).length;
+
+                return (
+                  <li key={cat.id}>
+                    <Link
+                      to={`/categories/${cat.id}`}
+                      className="category-card"
+                    >
+                      <h3>{cat.name}</h3>
+                      {preview.length > 0 ? (
+                        <ul className="category-card__preview">
+                          {preview.map((word) => (
+                            <li key={word.id}>{word.text}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="category-card__empty">No words yet</p>
+                      )}
+                      <p className="category-card__count">
+                        {wordCount} {wordCount === 1 ? 'word' : 'words'}
+                      </p>
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
+
+            {totalPages > 1 && (
+              <div>
+                <button onClick={handlePrev} disabled={currentPage === 1}>
+                  Prev
+                </button>
+                <span>
+                  {currentPage} / {totalPages}
+                </span>
+                <button
+                  onClick={handleNext}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
 
             {isCreating ? (
               <CategoryForm
