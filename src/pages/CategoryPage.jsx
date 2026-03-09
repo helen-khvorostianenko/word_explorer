@@ -60,6 +60,16 @@ function CategoryPage() {
     load();
   }, [id]);
 
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === 'Escape') setConfirmDelete(false);
+    }
+    if (confirmDelete) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [confirmDelete]);
+
   async function handleDeleteCategory() {
     try {
       await Promise.all(words.map((word) => deleteWord(word.id)));

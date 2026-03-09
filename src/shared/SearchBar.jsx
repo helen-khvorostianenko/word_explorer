@@ -14,15 +14,18 @@ function buildSuggestUrl(prefix) {
   url.searchParams.set('max', 10);
   return url.toString();
 }
+
 function SearchBar({ savedWords = [], categories = [] }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
+  const [activeIndex, setActiveIndex] = useState(-1);
 
   const controllerRef = useRef(null);
   const cacheRef = useRef({});
+  const listRef = useRef(null);
 
   const savedWordsMap = useMemo(() => {
     return new Map (savedWords.map((word) => [word.text.toLowerCase(), word]));
@@ -31,6 +34,10 @@ function SearchBar({ savedWords = [], categories = [] }) {
   const categoriesMap = useMemo(() => {
     return new Map(categories.map((cat) => [cat.id, cat.name]));
   }, [categories]);
+
+  useEffect(() => {
+    setActiveIndex(-1);
+  }, [suggestions]);
 
   useEffect(() => {
     const trimmed = query.trim();
@@ -90,17 +97,55 @@ function SearchBar({ savedWords = [], categories = [] }) {
   const handleSubmit = useCallback(
     (e) => {
       e.preventDefault();
+      if (activeIndex >= 0 && suggestions[activeIndex]) {
+        handleSelect(suggestions[activeIndex].word);
+        return;
+      }
       const word = query.trim();
       if (!word) return;
       navigate(`/word/${encodeURIComponent(word)}`);
     },
-    [query, navigate]
+    [query, navigate, activeIndex, suggestions]
   );
 
   const handleSelect = useCallback((word) => {
     setQuery('');
+    setSuggestions([]);
+    setActiveIndex(-1);
     navigate(`/word/${encodeURIComponent(word)}`);
   }, [navigate]);
+
+  function handleKeyDown(e) {
+    if (!suggestions.length) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setActiveIndex((prev) =>
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        );
+        break;
+      case 'Escape':
+        setQuery('');
+        setSuggestions([]);
+        setActiveIndex(-1);
+        break;
+      case 'Enter':
+        if (activeIndex >= 0 && suggestions[activeIndex]) {
+          e.preventDefault();
+          handleSelect(suggestions[activeIndex].word);
+        }
+        break;
+      default:
+        break;
+    }
+  }
 
   return (
     <div>
@@ -110,8 +155,14 @@ function SearchBar({ savedWords = [], categories = [] }) {
           id="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={handleKeyDown}
           autoComplete="off"
           placeholder="Type a word..."
+          aria-autocomplete="list"
+          aria-controls="search-suggestions"
+          aria-activedescendant={
+            activeIndex >= 0 ? `suggestion-${activeIndex}` : undefined
+          }
         />
         <button type="submit">Search</button>
       </form>
@@ -121,15 +172,24 @@ function SearchBar({ savedWords = [], categories = [] }) {
         <p>No suggestions found</p>
       )}
       {suggestions.length > 0 && (
-        <ul>
-          {suggestions.map((item) => {
+        <ul id="search-suggestions" ref={listRef} role="listbox">
+          {suggestions.map((item, idx) => {
             const saved = savedWordsMap.get(item.word.toLowerCase());
             const categoryName = saved
               ? categoriesMap.get(saved.categoryId)
               : null;
             return (
-              <li key={item.word}>
-                <button type="button" onClick={() => handleSelect(item.word)}>
+              <li
+                key={item.word}
+                id={`suggestion-${idx}`}
+                role="option"
+                aria-selected={idx === activeIndex}
+              >
+                <button
+                  type="button"
+                  onClick={() => handleSelect(item.word)}
+                  tabIndex={idx === activeIndex ? 0 : -1}
+                >
                   {item.word}
                 </button>
                 {saved && categoryName && (

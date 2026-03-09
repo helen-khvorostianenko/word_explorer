@@ -14,6 +14,7 @@ function CategoryForm({
         name="category-name"
         value={value}
         onChange={onChange}
+        onKeyDown={handleKeyDown}
         placeholder="e.g. Business English"
         autoFocus
       />
