@@ -1,3 +1,6 @@
 li[data-active="true"] {
   background: #e8f0fe;
 }
+
+.nav-link { color: gray; }
+.nav-link.active { color: black; font-weight: bold; }
