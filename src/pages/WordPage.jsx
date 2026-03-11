@@ -1,5 +1,6 @@
 import { useParams} from "react-router";
 import { useEffect, useState} from 'react';
+import styled from "styled-components";
 import Note from '../features/word/Note.jsx';
 import WordDefinition from '../features/word/WordDefinition.jsx';
 import RelatedWords from '../features/word/RelatedWords.jsx';
@@ -17,6 +18,25 @@ import {
   getCategories,
   getWord,
 } from '../api/api.js';
+
+const StatusMessage = styled.p`
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 1.5rem;
+`;
+
+const ErrorMessage = styled.p`
+  color: var(--red, #c0392b);
+  font-size: 0.95rem;
+  margin-top: 1.5rem;
+`;
+
+const WordContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 1.5rem;
+`;
 
 function WordPage() {
   const { word } = useParams();
@@ -98,22 +118,22 @@ function WordPage() {
   
   return (
     <PageLayout>
-      <div>
-        <SearchBar
-          savedWords={savedWordData ? [savedWordData] : []}
-          categories={categories}
-        />
-      </div>
-      {status === 'loading' && <p>Loading word…</p>}
-      {status === 'error' && <p>{error}</p>}
+      <SearchBar
+        savedWords={savedWordData ? [savedWordData] : []}
+        categories={categories}
+      />
+      {status === 'loading' && <StatusMessage>Loading word…</StatusMessage>}
+      {status === 'error' && <ErrorMessage>{error}</ErrorMessage>}
 
       {status === 'success' && card && (
-        <>
+        <WordContent>
           <WordDefinition card={card} />
           <RelatedWords word={word} />
-          {serverStatus === 'loading' && <p>Loading your word…</p>}
+          {serverStatus === 'loading' && (
+            <StatusMessage>Loading your word…</StatusMessage>
+          )}
           {serverStatus === 'error' && (
-            <p>Could not load your word: {serverError}</p>
+            <ErrorMessage>Could not load your word: {serverError}</ErrorMessage>
           )}
           {serverStatus === 'success' && (
             <SaveToCategory
@@ -124,7 +144,7 @@ function WordPage() {
             />
           )}
           {savedWordData && <Note wordId={savedWordData.id} />}
-        </>
+        </WordContent>
       )}
     </PageLayout>
   );
