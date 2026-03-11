@@ -118,6 +118,13 @@ export async function getNote(wordId) {
   return Array.isArray(data) ? data[0] : null;
 }
 
+export async function getAllNotes() {
+  const res = await fetch(`${SERVER_BASE_URL}/notes`);
+  if (!res.ok) throw new Error(`Failed to fetch notes: ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : [];
+}
+
 export async function saveNote(wordId, text) {
   const res = await fetch(`${SERVER_BASE_URL}/notes`, {
     method: 'POST',

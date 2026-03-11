@@ -41,7 +41,6 @@ function SaveToCategory({ word, categories, savedWordData, onSave }) {
     ? !!selectedCategory && selectedCategory !== savedWordData.categoryId
     : !!selectedCategory;
 
-    console.log('savedWordData:', savedWordData, 'word:', word);
   return (
     <section>
       {!savedWordData && (
