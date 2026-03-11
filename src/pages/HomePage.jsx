@@ -1,13 +1,168 @@
 import { useEffect, useState, useCallback} from 'react';
 import { Link } from 'react-router';
+import styled from 'styled-components';
 import PageLayout from '../shared/PageLayout.jsx';
 import SearchBar from '../shared/SearchBar.jsx';
 import CategoryForm from '../features/categories/CategoryForm.jsx';
 import { createCategory, getAllWords, getCategories } from '../api/api.js';
 import { getGenericErrorMessage, getNetworkErrorMessage, isNetworkError } from '../utils/errors.js';
+import { PiBooks } from 'react-icons/pi';
 
 const PREVIEW_WORDS_COUNT = 3;
 const PAGE_SIZE = 8;
+
+const PageTitle = styled.h1`
+  font-size: 2rem;
+  color: var(--navy);
+  margin-bottom: 1.5rem;
+`;
+
+const Section = styled.section`
+  margin-top: 2rem;
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 1.2rem;
+  color: var(--navy);
+  border-left: 3px solid var(--gold);
+  padding-left: 0.6rem;
+  margin-bottom: 1.25rem;
+`;
+
+const StatusMessage = styled.p`
+  color: var(--text-muted);
+  font-size: 0.95rem;
+`;
+
+const ErrorMessage = styled.p`
+  color: var(--red, #c0392b);
+  font-size: 0.95rem;
+`;
+
+const CategoryGrid = styled.ul`
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 1.5rem;
+  align-items: start;
+`;
+
+const CategoryGridItem = styled.li`
+  list-style: none;
+`;
+
+const CategoryCard = styled(Link)`
+  display: flex;
+  flex-direction: column;
+  height: 240px;
+  padding: 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+
+  &:hover {
+    border-color: var(--blue);
+    box-shadow: var(--shadow-md);
+  }
+`;
+
+const CardTitle = styled.h3`
+  font-size: 1rem;
+  color: var(--navy);
+  margin-bottom: 0.75rem;
+`;
+
+const CardWordList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.75rem;
+`;
+
+const CardWordItem = styled.li`
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  padding: 0.1rem 0;
+`;
+
+const CardEmptyText = styled.p`
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 0.75rem;
+  opacity: 0.7;
+`;
+
+const CardWordCount = styled.p`
+  font-size: 0.85rem;
+  color: var(--gold);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: auto;
+  align-self: flex-end;
+`;
+
+const CardMoreText = styled.p`
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+`;
+
+const Pagination = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+`;
+
+const PaginationInfo = styled.span`
+  font-size: 0.9rem;
+  color: var(--text-muted);
+`;
+
+const PaginationButton = styled.button`
+  padding: 0.35rem 0.9rem;
+  background: var(--surface);
+  color: var(--navy);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.2s;
+
+  &:hover:not(:disabled) {
+    border-color: var(--blue);
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+`;
+
+const AddListButton = styled.button`
+  padding: 0.5rem 1.25rem;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: background 0.2s;
+
+  &:hover {
+    background: var(--navy-light);
+  }
+`;
+
 
 function HomePage() {
   const [categories, setCategories] = useState([]);
@@ -20,7 +175,6 @@ function HomePage() {
 
   const [allWords, setAllWords] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-
 
   useEffect(() => {
     async function load() {
@@ -104,21 +258,22 @@ function HomePage() {
     setCurrentPage((page) => Math.min(totalPages, page + 1));
   }, [totalPages]);
 
-
   return (
     <PageLayout>
-      <h1>Word Explorer</h1>
+      <PageTitle>Word Explorer</PageTitle>
       <SearchBar savedWords={allWords} categories={categories} />
-      <section>
-        <h2>Your lists</h2>
-        {status === 'loading' && <p>Loading...</p>}
-        {status === 'error' && <p>{error}</p>}
+      <Section>
+        <SectionTitle>Your lists</SectionTitle>
+        {status === 'loading' && <StatusMessage>Loading...</StatusMessage>}
+        {status === 'error' && <ErrorMessage>{error}</ErrorMessage>}
         {status === 'success' && (
           <>
             {categories.length === 0 && !isCreating && (
-              <p>No lists yet. Create your first one!</p>
+              <StatusMessage>
+                No lists yet. Create your first one!
+              </StatusMessage>
             )}
-            <ul className="category-grid">
+            <CategoryGrid>
               {getPagedCategories().map((cat) => {
                 const preview = getPreviewWords(cat.id);
                 const wordCount = allWords.filter(
@@ -126,45 +281,57 @@ function HomePage() {
                 ).length;
 
                 return (
-                  <li key={cat.id}>
-                    <Link
+                  <CategoryGridItem key={cat.id}>
+                    <CategoryCard
                       to={`/categories/${cat.id}`}
-                      className="category-card"
                     >
-                      <h3>{cat.name}</h3>
+                      <CardTitle>{cat.name}</CardTitle>
                       {preview.length > 0 ? (
-                        <ul className="category-card__preview">
+                        <CardWordList>
                           {preview.map((word) => (
-                            <li key={word.id}>{word.text}</li>
+                            <CardWordItem key={word.id}>
+                              {word.text}
+                            </CardWordItem>
                           ))}
-                        </ul>
+                        </CardWordList>
                       ) : (
-                        <p className="category-card__empty">No words yet</p>
+                        <CardEmptyText>No words yet</CardEmptyText>
                       )}
-                      <p className="category-card__count">
-                        {wordCount} {wordCount === 1 ? 'word' : 'words'}
-                      </p>
-                    </Link>
-                  </li>
+                      {wordCount > PREVIEW_WORDS_COUNT && (
+                        <CardMoreText>
+                          +{wordCount - PREVIEW_WORDS_COUNT} more
+                        </CardMoreText>
+                      )}
+                      {wordCount > 0 && (
+                        <CardWordCount>
+                          <PiBooks size={15} />
+                          {wordCount}
+                        </CardWordCount>
+                      )}
+                    </CategoryCard>
+                  </CategoryGridItem>
                 );
               })}
-            </ul>
+            </CategoryGrid>
 
             {totalPages > 1 && (
-              <div>
-                <button onClick={handlePrev} disabled={currentPage === 1}>
+              <Pagination>
+                <PaginationButton
+                  onClick={handlePrev}
+                  disabled={currentPage === 1}
+                >
                   Prev
-                </button>
-                <span>
+                </PaginationButton>
+                <PaginationInfo>
                   {currentPage} / {totalPages}
-                </span>
-                <button
+                </PaginationInfo>
+                <PaginationButton
                   onClick={handleNext}
                   disabled={currentPage === totalPages}
                 >
                   Next
-                </button>
-              </div>
+                </PaginationButton>
+              </Pagination>
             )}
 
             {isCreating ? (
@@ -176,11 +343,13 @@ function HomePage() {
                 onCancel={handleCancel}
               />
             ) : (
-              <button onClick={() => setIsCreating(true)}>+ New List</button>
+              <AddListButton onClick={() => setIsCreating(true)}>
+                + New List
+              </AddListButton>
             )}
           </>
         )}
-      </section>
+      </Section>
     </PageLayout>
   );
 }
