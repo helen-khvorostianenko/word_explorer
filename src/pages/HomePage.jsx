@@ -6,7 +6,7 @@ import SearchBar from '../shared/SearchBar.jsx';
 import CategoryForm from '../features/categories/CategoryForm.jsx';
 import { createCategory, getAllWords, getCategories } from '../api/api.js';
 import { getGenericErrorMessage, getNetworkErrorMessage, isNetworkError } from '../utils/errors.js';
-import { PiBooks } from 'react-icons/pi';
+import { PiBooks, PiPlusBold } from 'react-icons/pi';
 
 const PREVIEW_WORDS_COUNT = 3;
 const PAGE_SIZE = 8;
@@ -149,6 +149,9 @@ const PaginationButton = styled.button`
 `;
 
 const AddListButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.5rem 1.25rem;
   background: var(--navy);
   color: #fff;
@@ -282,9 +285,7 @@ function HomePage() {
 
                 return (
                   <CategoryGridItem key={cat.id}>
-                    <CategoryCard
-                      to={`/categories/${cat.id}`}
-                    >
+                    <CategoryCard to={`/categories/${cat.id}`}>
                       <CardTitle>{cat.name}</CardTitle>
                       {preview.length > 0 ? (
                         <CardWordList>
@@ -344,7 +345,8 @@ function HomePage() {
               />
             ) : (
               <AddListButton onClick={() => setIsCreating(true)}>
-                + New List
+                <PiPlusBold size={15} />
+                New List
               </AddListButton>
             )}
           </>

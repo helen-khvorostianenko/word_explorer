@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router';
 import styled from 'styled-components';
+import { RiFileWord2Line } from 'react-icons/ri';
 
 const StyledHeader = styled.header`
   background: var(--navy);
@@ -11,6 +12,9 @@ const StyledHeader = styled.header`
 `;
 
 const Logo = styled(NavLink)`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #fff;
   font-size: 1.15rem;
   font-weight: bold;
@@ -77,7 +81,9 @@ function PageLayout({ children }) {
   return (
     <>
       <StyledHeader>
-        <Logo to="/">Word Explorer</Logo>
+        <Logo to="/">
+          <RiFileWord2Line size={44} />
+        </Logo>
         <Nav>
           <NavItem to="/">Home</NavItem>
           <NavItem to="/about">About</NavItem>
