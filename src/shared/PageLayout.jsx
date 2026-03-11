@@ -1,27 +1,94 @@
-import { NavLink, useLocation } from 'react-router';
+import { NavLink } from 'react-router';
+import styled from 'styled-components';
+
+const StyledHeader = styled.header`
+  background: var(--navy);
+  border-bottom: 3px solid var(--gold);
+  padding: 0.85rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const Logo = styled(NavLink)`
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+
+  &.active {
+    color: #fff;
+  }
+`;
+
+const Nav = styled.nav`
+  display: flex;
+  gap: 1.5rem;
+`;
+
+const NavItem = styled(NavLink)`
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.95rem;
+  padding-bottom: 3px;
+  border-bottom: 2px solid transparent;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+
+  &:hover {
+    color: #fff;
+  }
+
+  &.active {
+    color: var(--gold-light);
+    border-bottom-color: var(--gold);
+    font-weight: bold;
+  }
+`;
+
+const Main = styled.main`
+  flex: 1;
+`;
+
+const Wrapper = styled.div`
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem;
+`;
+
+const StyledFooter = styled.footer`
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+
+  a {
+    color: var(--blue);
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--gold);
+    }
+  }
+`;
 
 function PageLayout({ children }) {
-  const { pathname } = useLocation();
-  const navLinkClass = ({ isActive }) =>
-    isActive ? 'nav-link active' : 'nav-link';
-
   return (
     <>
-      <header>
-        <NavLink to="/" className={navLinkClass}>
-          Word Explorer
-        </NavLink>
-        <nav>
-          <NavLink to="/" className={navLinkClass}>
-            Home
-          </NavLink>
-          <NavLink to="/about" className={navLinkClass}>
-            About
-          </NavLink>
-        </nav>
-      </header>
-      <main>{children}</main>
-      <footer>
+      <StyledHeader>
+        <Logo to="/">Word Explorer</Logo>
+        <Nav>
+          <NavItem to="/">Home</NavItem>
+          <NavItem to="/about">About</NavItem>
+        </Nav>
+      </StyledHeader>
+
+      <Main>
+        <Wrapper>{children}</Wrapper>
+      </Main>
+
+      <StyledFooter>
         <p>
           Built with ♥ by{' '}
           <a
@@ -37,7 +104,7 @@ function PageLayout({ children }) {
           </a>{' '}
           — for everyday usage.
         </p>
-      </footer>
+      </StyledFooter>
     </>
   );
 }

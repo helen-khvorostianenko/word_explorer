@@ -15,3 +15,5 @@ npm run dev
 ## Dependencies
 
 - **nanoid** — generates unique IDs for categories, words, and notes
+
+- **styled-components** — CSS-in-JS library for component-level styling

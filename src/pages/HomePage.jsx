@@ -7,7 +7,7 @@ import { createCategory, getAllWords, getCategories } from '../api/api.js';
 import { getGenericErrorMessage, getNetworkErrorMessage, isNetworkError } from '../utils/errors.js';
 
 const PREVIEW_WORDS_COUNT = 3;
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 8;
 
 function HomePage() {
   const [categories, setCategories] = useState([]);

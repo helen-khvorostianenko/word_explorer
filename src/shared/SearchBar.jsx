@@ -1,6 +1,6 @@
-
-import { useEffect, useState, useRef, useCallback, useMemo } from "react";
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router';
+import styled from 'styled-components';
 import {
   isNetworkError,
   getNetworkErrorMessage,
@@ -15,6 +15,121 @@ function buildSuggestUrl(prefix) {
   return url.toString();
 }
 
+const SearchWrapper = styled.div`
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+`;
+
+const SearchForm = styled.form`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
+const SearchLabel = styled.label`
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+`;
+
+const SearchInput = styled.input`
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+  width: 340px;
+  transition: border-color 0.2s;
+  box-shadow: var(--shadow);
+
+  &:focus {
+    border-color: var(--blue);
+  }
+`;
+
+const SearchButton = styled.button`
+  padding: 0.5rem 1.1rem;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  transition: background 0.2s;
+`;
+
+const StatusText = styled.p`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+`;
+
+const ErrorText = styled.p`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  font-size: 0.85rem;
+  color: var(--red, #c0392b);
+`;
+
+const SuggestionList = styled.ul`
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  list-style: none;
+  z-index: 100;
+  overflow: hidden;
+`;
+
+const SuggestionItem = styled.li`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 0.25rem;
+  background: ${({ $active }) => ($active ? 'var(--bg)' : 'transparent')};
+  transition: background 0.15s;
+`;
+
+const SuggestionButton = styled.button`
+  flex: 1;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 0.5rem 0.5rem;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+
+  &:hover {
+    background: none;
+  }
+`;
+
+const CategoryLink = styled(Link)`
+  font-size: 0.78rem;
+  color: var(--blue);
+  white-space: nowrap;
+  padding: 0.2rem 0.4rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--blue) 10%, transparent);
+  transition: background 0.2s;
+
+  &:hover {
+    background: color-mix(in srgb, var(--blue) 20%, transparent);
+  }
+`;
+
 function SearchBar({ savedWords = [], categories = [] }) {
   const navigate = useNavigate();
   const [query, setQuery] = useState('');
@@ -27,7 +142,7 @@ function SearchBar({ savedWords = [], categories = [] }) {
   const cacheRef = useRef({});
 
   const savedWordsMap = useMemo(() => {
-    return new Map (savedWords.map((word) => [word.text.toLowerCase(), word]));
+    return new Map(savedWords.map((word) => [word.text.toLowerCase(), word]));
   }, [savedWords]);
 
   const categoriesMap = useMemo(() => {
@@ -67,9 +182,7 @@ function SearchBar({ savedWords = [], categories = [] }) {
         const res = await fetch(buildSuggestUrl(trimmed), {
           signal: controller.signal,
         });
-        if (!res.ok) {
-          throw new Error(getDatamuseErrorMessage(res.status));
-        }
+        if (!res.ok) throw new Error(getDatamuseErrorMessage(res.status));
 
         const data = await res.json();
         const results = Array.isArray(data) ? data : [];
@@ -107,54 +220,57 @@ function SearchBar({ savedWords = [], categories = [] }) {
     [query, navigate, activeIndex, suggestions]
   );
 
-  const handleSelect = useCallback((word) => {
-    setQuery('');
-    setSuggestions([]);
-    setActiveIndex(-1);
-    navigate(`/word/${encodeURIComponent(word)}`);
-  }, [navigate]);
-
-  const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Escape') {
+  const handleSelect = useCallback(
+    (word) => {
       setQuery('');
       setSuggestions([]);
       setActiveIndex(-1);
-      return;
-    }
+      navigate(`/word/${encodeURIComponent(word)}`);
+    },
+    [navigate]
+  );
 
-    if (!suggestions.length) return;
+  const handleKeyDown = useCallback(
+    (e) => {
+      if (e.key === 'Escape') {
+        setQuery('');
+        setSuggestions([]);
+        setActiveIndex(-1);
+        return;
+      }
+      if (!suggestions.length) return;
 
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setActiveIndex((prev) =>
-          prev < suggestions.length - 1 ? prev + 1 : 0
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setActiveIndex((prev) =>
-          prev > 0 ? prev - 1 : suggestions.length - 1
-        );
-        break;
-      case 'Enter':
-        if (activeIndex >= 0 && suggestions[activeIndex]) {
+      switch (e.key) {
+        case 'ArrowDown':
           e.preventDefault();
-          handleSelect(suggestions[activeIndex].word);
-        }
-        break;
-      default:
-        break;
-    }
-  },[suggestions, activeIndex, handleSelect]
-);
-
+          setActiveIndex((prev) =>
+            prev < suggestions.length - 1 ? prev + 1 : 0
+          );
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setActiveIndex((prev) =>
+            prev > 0 ? prev - 1 : suggestions.length - 1
+          );
+          break;
+        case 'Enter':
+          if (activeIndex >= 0 && suggestions[activeIndex]) {
+            e.preventDefault();
+            handleSelect(suggestions[activeIndex].word);
+          }
+          break;
+        default:
+          break;
+      }
+    },
+    [suggestions, activeIndex, handleSelect]
+  );
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="search">Search a word</label>
-        <input
+    <SearchWrapper>
+      <SearchForm onSubmit={handleSubmit}>
+        <SearchLabel htmlFor="search">Search a word</SearchLabel>
+        <SearchInput
           id="search"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -162,17 +278,17 @@ function SearchBar({ savedWords = [], categories = [] }) {
           autoComplete="off"
           placeholder="Type a word..."
         />
-        <button type="submit">Search</button>
-      </form>
+        <SearchButton type="submit">Search</SearchButton>
+      </SearchForm>
 
-      {status === 'loading' && <p>Loading...</p>}
-      {status === 'error' && <p>{error}</p>}
+      {status === 'loading' && <StatusText>Loading...</StatusText>}
+      {status === 'error' && <ErrorText>{error}</ErrorText>}
       {status === 'success' && suggestions.length === 0 && (
-        <p>No suggestions found</p>
+        <StatusText>No suggestions found</StatusText>
       )}
 
       {suggestions.length > 0 && (
-        <ul>
+        <SuggestionList>
           {suggestions.map((item, idx) => {
             const saved = savedWordsMap.get(item.word.toLowerCase());
             const categoryName = saved
@@ -180,27 +296,29 @@ function SearchBar({ savedWords = [], categories = [] }) {
               : null;
 
             return (
-              <li
+              <SuggestionItem
                 key={item.word}
-                data-active={idx === activeIndex}
+                $active={idx === activeIndex}
+                onMouseEnter={() => setActiveIndex(idx)}
               >
-                <button
+                <SuggestionButton
                   type="button"
+                  tabIndex={-1}
                   onClick={() => handleSelect(item.word)}
                 >
                   {item.word}
-                </button>
+                </SuggestionButton>
                 {saved && categoryName && (
-                  <Link to={`/categories/${saved.categoryId}`}>
+                  <CategoryLink to={`/categories/${saved.categoryId}`}>
                     {categoryName}
-                  </Link>
+                  </CategoryLink>
                 )}
-              </li>
+              </SuggestionItem>
             );
           })}
-        </ul>
+        </SuggestionList>
       )}
-    </div>
+    </SearchWrapper>
   );
 }
 

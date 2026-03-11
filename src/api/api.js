@@ -50,7 +50,9 @@ export async function getWordsByCategory(categoryId) {
   const res = await fetch(
     `${SERVER_BASE_URL}/words?categoryId=${encodeURIComponent(categoryId)}`
   );
-  if (!res.ok) throw new Error( `Failed to fetch words for category "${category}": ${res.status}`);
+  if (!res.ok) throw new Error(
+    `Failed to fetch words for category "${categoryId}": ${res.status}`
+  );
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
@@ -81,7 +83,7 @@ export async function saveWord(wordText, categoryId) {
       addedAt: Date.now(),
     }),
   });
-  if (!res.ok) throw new Error(`Failed to save word "${word}": ${res.status}`);
+  if (!res.ok) throw new Error(`Failed to save word "${wordText}": ${res.status}`);
   return res.json();
 }
 
