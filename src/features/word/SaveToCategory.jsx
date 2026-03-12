@@ -1,11 +1,97 @@
 import { useState, useEffect } from 'react';
+import styled from 'styled-components';
 import { saveWord, updateWordCategory } from '../../api/api.js';
+
+const Section = styled.section``;
+
+const SectionTitle = styled.h2`
+  font-size: 1.2rem;
+  color: var(--navy);
+  border-left: 3px solid var(--gold);
+  padding-left: 0.6rem;
+  margin-bottom: 0.5rem;
+`;
+
+const SubText = styled.p`
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+
+  strong {
+    color: var(--navy);
+  }
+`;
+
+const ControlRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+`;
+
+const Select = styled.select`
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: border-color 0.2s;
+
+  &:focus {
+    border-color: var(--blue);
+  }
+`;
+
+const SaveButton = styled.button`
+  padding: 0.5rem 1.1rem;
+  background: var(--navy);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition:
+    background 0.2s,
+    opacity 0.2s;
+
+  &:hover:not(:disabled) {
+    background: var(--navy-light);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+`;
+
+const HintText = styled.p`
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 0.6rem;
+`;
+
+const SuccessText = styled.p`
+  font-size: 0.85rem;
+  color: var(--blue);
+  margin-top: 0.6rem;
+`;
+
+const ErrorText = styled.p`
+  font-size: 0.85rem;
+  color: var(--red, #c0392b);
+  margin-top: 0.6rem;
+`;
 
 function SaveToCategory({ word, categories, savedWordData, onSave }) {
   const [selectedCategory, setSelectedCategory] = useState(
     savedWordData?.categoryId || ''
   );
   const [saveMessage, setSaveMessage] = useState('');
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     setSelectedCategory(savedWordData?.categoryId || '');
@@ -25,11 +111,11 @@ function SaveToCategory({ word, categories, savedWordData, onSave }) {
 
       const categoryName =
         categories.find((cat) => cat.id === selectedCategory)?.name || '';
-      setSaveMessage(`✓ Saved to : ${categoryName}`);
-      setTimeout(() => {
-        setSaveMessage('');
-      }, 3000);
-    } catch (e) {
+      setIsError(false);
+      setSaveMessage(`✓ Saved to: ${categoryName}`);
+      setTimeout(() => setSaveMessage(''), 3000);
+    } catch {
+      setIsError(true);
       setSaveMessage('Failed to save word.');
     }
   }
@@ -37,56 +123,65 @@ function SaveToCategory({ word, categories, savedWordData, onSave }) {
   const savedCategoryName = categories.find(
     (cat) => cat.id === savedWordData?.categoryId
   )?.name;
+
   const isCategoryChanged = savedWordData
     ? !!selectedCategory && selectedCategory !== savedWordData.categoryId
     : !!selectedCategory;
 
   return (
-    <section>
-      {!savedWordData && (
-        <>
-          <h2>Save the word into your list</h2>
-          <p>Select a category to save this word.</p>
-        </>
+    <Section>
+      <SectionTitle>
+        {savedWordData ? 'Saved in your list' : 'Save to your list'}
+      </SectionTitle>
+
+      <SubText>
+        {savedWordData ? (
+          <>
+            This word is saved in <strong>{savedCategoryName}</strong>. You can
+            move it to a different list below.
+          </>
+        ) : (
+          'Select a list to save this word.'
+        )}
+      </SubText>
+
+      <ControlRow>
+        <Select
+          id="category"
+          name="category"
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="">Select a list</option>
+          {categories.map((cat) => (
+            <option key={cat.id} value={cat.id}>
+              {cat.name}
+            </option>
+          ))}
+        </Select>
+
+        <SaveButton
+          onClick={handleSaveWord}
+          disabled={!selectedCategory || !isCategoryChanged}
+          title={!selectedCategory ? 'Select a list first' : ''}
+        >
+          {savedWordData ? 'Move to list' : 'Save word'}
+        </SaveButton>
+      </ControlRow>
+
+      {isCategoryChanged && !saveMessage && (
+        <HintText>
+          Click <strong>{savedWordData ? 'Move to list' : 'Save word'}</strong>{' '}
+          to confirm.
+        </HintText>
       )}
-      {savedWordData && (
-        <>
-          <h2>Saved in your list</h2>
-          <p>
-            This word is saved in <strong>{savedCategoryName}</strong>
-          </p>
-        </>
-      )}
-      <p>Category:</p>
-      <select
-        id="category"
-        name="category"
-        value={selectedCategory}
-        onChange={(e) => setSelectedCategory(e.target.value)}
-      >
-        <option value="">Select a category</option>
-        {categories.map((cat) => (
-          <option key={cat.id} value={cat.id}>
-            {cat.name}
-          </option>
+      {saveMessage &&
+        (isError ? (
+          <ErrorText>{saveMessage}</ErrorText>
+        ) : (
+          <SuccessText>{saveMessage}</SuccessText>
         ))}
-      </select>
-      <button
-        onClick={handleSaveWord}
-        disabled={!selectedCategory || !isCategoryChanged}
-        title={!selectedCategory ? 'Select a category first' : ''}
-      >
-        {!savedWordData ? 'Save category' : 'Update category'}
-      </button>
-      {isCategoryChanged && (
-        <p>
-          Category changed. Click{' '}
-          <strong>{!savedWordData ? 'Save' : 'Update'} category</strong> to
-          save.
-        </p>
-      )}
-      {saveMessage && <p>{saveMessage}</p>}
-    </section>
+    </Section>
   );
 }
 
