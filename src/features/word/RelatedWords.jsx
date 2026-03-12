@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router';
+import styled from 'styled-components';
 import { buildDatamuseWordsUrl } from '../../utils/datamuse.js';
 import {
   isNetworkError,
@@ -16,6 +17,89 @@ const TABS = [
   { key: 'sl', label: 'Sounds Like' },
 ];
 
+const Section = styled.section``;
+
+const SectionTitle = styled.h2`
+  font-size: 1.2rem;
+  color: var(--navy);
+  border-left: 3px solid var(--gold);
+  padding-left: 0.6rem;
+  margin-bottom: 1rem;
+`;
+
+const TabRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.25rem;
+`;
+
+const TabButton = styled.button`
+  padding: 0.35rem 0.9rem;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    border-color 0.2s;
+
+  background: ${({ $active }) => ($active ? 'var(--navy)' : 'var(--surface)')};
+  color: ${({ $active }) => ($active ? '#fff' : 'var(--text-muted)')};
+  border: 1px solid
+    ${({ $active }) => ($active ? 'var(--navy)' : 'var(--border)')};
+
+  &:hover:not(:disabled) {
+    border-color: var(--blue);
+    color: ${({ $active }) => ($active ? '#fff' : 'var(--text)')};
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+`;
+
+const WordCloud = styled.ul`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  list-style: none;
+  padding: 0;
+`;
+
+const WordPill = styled.li`
+  a {
+    display: inline-block;
+    padding: 0.3rem 0.75rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 0.9rem;
+    color: var(--navy);
+    box-shadow: var(--shadow);
+    transition:
+      border-color 0.2s,
+      color 0.2s,
+      background 0.2s;
+
+    &:hover {
+      border-color: var(--blue);
+      color: var(--blue);
+      background: color-mix(in srgb, var(--blue) 6%, var(--surface));
+    }
+  }
+`;
+
+const StatusText = styled.p`
+  color: var(--text-muted);
+  font-size: 0.95rem;
+`;
+
+const ErrorText = styled.p`
+  color: var(--red, #c0392b);
+  font-size: 0.95rem;
+`;
+
 function RelatedWords({ word }) {
   const [activeTab, setActiveTab] = useState(TABS[0].key);
   const [relatedStatus, setRelatedStatus] = useState('idle');
@@ -24,10 +108,25 @@ function RelatedWords({ word }) {
 
   const tabsControllerRef = useRef(null);
   const tabsCacheRef = useRef({});
+  const autoSwitchAttemptsRef = useRef(0);
 
   useEffect(() => {
     setActiveTab(TABS[0].key);
+    autoSwitchAttemptsRef.current = 0;
   }, [word]);
+
+  useEffect(() => {
+    if (
+      relatedStatus === 'success' &&
+      relatedWords.length === 0 &&
+      autoSwitchAttemptsRef.current < TABS.length - 1
+    ) {
+      const currentIndex = TABS.findIndex((tab) => tab.key === activeTab);
+      const nextIndex = (currentIndex + 1) % TABS.length;
+      autoSwitchAttemptsRef.current += 1;
+      setActiveTab(TABS[nextIndex].key);
+    }
+  }, [relatedStatus, relatedWords, activeTab]);
 
   useEffect(() => {
     if (!word) return;
@@ -40,9 +139,7 @@ function RelatedWords({ word }) {
       return;
     }
 
-    if (tabsControllerRef.current) {
-      tabsControllerRef.current.abort();
-    }
+    if (tabsControllerRef.current) tabsControllerRef.current.abort();
     const controller = new AbortController();
     tabsControllerRef.current = controller;
 
@@ -50,17 +147,13 @@ function RelatedWords({ word }) {
       try {
         setRelatedStatus('loading');
         setRelatedError(null);
-        if (!tabsCacheRef.current[cacheKey]) {
-          setRelatedWords([]);
-        }
+        if (!tabsCacheRef.current[cacheKey]) setRelatedWords([]);
 
         const res = await fetch(buildDatamuseWordsUrl(activeTab, word), {
           signal: controller.signal,
         });
 
-        if (!res.ok) {
-          throw new Error(getDatamuseErrorMessage(res.status));
-        }
+        if (!res.ok) throw new Error(getDatamuseErrorMessage(res.status));
 
         const data = await res.json();
         const results = Array.isArray(data) ? data : [];
@@ -76,43 +169,49 @@ function RelatedWords({ word }) {
     }
 
     loadRelated();
-    return () => {
-      controller.abort();
-    };
+    return () => controller.abort();
   }, [word, activeTab]);
 
+  function handleTabClick(key) {
+    autoSwitchAttemptsRef.current = TABS.length;
+    setActiveTab(key);
+  }
+
   return (
-    <section>
-      <h2>Explore</h2>
-      <div>
+    <Section>
+      <SectionTitle>Explore</SectionTitle>
+
+      <TabRow>
         {TABS.map((tab) => (
-          <button
+          <TabButton
             key={tab.key}
             type="button"
-            onClick={() => setActiveTab(tab.key)}
+            $active={activeTab === tab.key}
+            onClick={() => handleTabClick(tab.key)}
             disabled={activeTab === tab.key}
           >
             {tab.label}
-          </button>
+          </TabButton>
         ))}
-      </div>
-      {relatedStatus === 'loading' && <p>Loading…</p>}
-      {relatedStatus === 'error' && <p>{relatedError}</p>}
+      </TabRow>
+
+      {relatedStatus === 'loading' && <StatusText>Loading…</StatusText>}
+      {relatedStatus === 'error' && <ErrorText>{relatedError}</ErrorText>}
       {relatedStatus === 'success' && relatedWords.length === 0 && (
-        <p>No results.</p>
+        <StatusText>No results.</StatusText>
       )}
       {relatedWords.length > 0 && (
-        <ul>
+        <WordCloud>
           {relatedWords.map((item) => (
-            <li key={`${item.word}-${activeTab}`}>
+            <WordPill key={`${item.word}-${activeTab}`}>
               <Link to={`/word/${encodeURIComponent(item.word)}`}>
                 {item.word}
               </Link>
-            </li>
+            </WordPill>
           ))}
-        </ul>
+        </WordCloud>
       )}
-    </section>
+    </Section>
   );
 }
 
