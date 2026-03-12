@@ -53,16 +53,14 @@ const CategoryGridItem = styled.li`
   list-style: none;
 `;
 
-const CategoryCard = styled(Link)`
+const CategoryCard = styled.div`
   display: flex;
   flex-direction: column;
-  height: 240px;
   padding: 1.25rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  overflow: hidden;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
@@ -73,22 +71,68 @@ const CategoryCard = styled(Link)`
   }
 `;
 
-const CardTitle = styled.h3`
+const CardTitle = styled(Link)`
   font-size: 1rem;
+  font-weight: bold;
   color: var(--navy);
   margin-bottom: 0.75rem;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--blue);
+  }
 `;
 
 const CardWordList = styled.ul`
   list-style: none;
   padding: 0;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.5rem;
 `;
 
 const CardWordItem = styled.li`
   font-size: 0.88rem;
   color: var(--text-muted);
   padding: 0.1rem 0;
+
+  a {
+    color: inherit;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--blue);
+    }
+  }
+`;
+
+const CardFooter = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 0.5rem;
+`;
+
+const CardMoreLink = styled(Link)`
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--blue);
+  }
+`;
+
+const CardWordCount = styled(Link)`
+  font-size: 0.85rem;
+  color: var(--gold);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  
+  &:hover {
+    color: var(--blue);
+  }
 `;
 
 const CardEmptyText = styled.p`
@@ -97,17 +141,6 @@ const CardEmptyText = styled.p`
   font-style: italic;
   margin-bottom: 0.75rem;
   opacity: 0.7;
-`;
-
-const CardWordCount = styled.p`
-  font-size: 0.85rem;
-  color: var(--gold);
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  margin-top: auto;
-  align-self: flex-end;
 `;
 
 const CardMoreText = styled.p`
@@ -285,30 +318,40 @@ function HomePage() {
 
                 return (
                   <CategoryGridItem key={cat.id}>
-                    <CategoryCard to={`/categories/${cat.id}`}>
-                      <CardTitle>{cat.name}</CardTitle>
+                    <CategoryCard>
+                      <CardTitle to={`/categories/${cat.id}`}>
+                        {cat.name}
+                      </CardTitle>
+
                       {preview.length > 0 ? (
                         <CardWordList>
                           {preview.map((word) => (
                             <CardWordItem key={word.id}>
-                              {word.text}
+                              <Link
+                                to={`/word/${encodeURIComponent(word.text)}`}
+                              >
+                                {word.text}
+                              </Link>
                             </CardWordItem>
                           ))}
                         </CardWordList>
                       ) : (
                         <CardEmptyText>No words yet</CardEmptyText>
                       )}
-                      {wordCount > PREVIEW_WORDS_COUNT && (
-                        <CardMoreText>
-                          +{wordCount - PREVIEW_WORDS_COUNT} more
-                        </CardMoreText>
-                      )}
-                      {wordCount > 0 && (
-                        <CardWordCount>
-                          <PiBooks size={15} />
-                          {wordCount}
-                        </CardWordCount>
-                      )}
+
+                      <CardFooter>
+                        <CardMoreLink to={`/categories/${cat.id}`}>
+                          {wordCount > PREVIEW_WORDS_COUNT
+                            ? `+${wordCount - PREVIEW_WORDS_COUNT} more`
+                            : null}
+                        </CardMoreLink>
+                        {wordCount > 0 && (
+                          <CardWordCount to={`/categories/${cat.id}`}>
+                            <PiBooks size={15} />
+                            {wordCount}
+                          </CardWordCount>
+                        )}
+                      </CardFooter>
                     </CategoryCard>
                   </CategoryGridItem>
                 );
