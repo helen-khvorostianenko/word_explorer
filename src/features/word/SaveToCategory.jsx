@@ -94,6 +94,8 @@ function SaveToCategory({ word, categories, savedWordData, onSave }) {
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
+    // reset selected category when word or saved data changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     setSelectedCategory(savedWordData?.categoryId || '');
   }, [savedWordData, word]);
 

@@ -91,6 +91,7 @@ function Note({ wordId }) {
           setNoteId(data.id);
         }
       } catch {
+        // note may not exist yet — ignore
       } finally {
         isNoteInitialLoad.current = false;
       }
@@ -121,6 +122,7 @@ function Note({ wordId }) {
     }, DEBOUNCE_MS);
 
     return () => clearTimeout(noteTimeoutRef.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [note]);
 
   async function handleDeleteNote() {
