@@ -23,7 +23,7 @@ Built as a final project for the [Code the Dream](https://codethedream.org) curr
 - [React Router](https://reactrouter.com) — client-side routing
 - [Vite](https://vitejs.dev) — build tool
 - [styled-components](https://styled-components.com) — component-level styling
-- [json-server](https://github.com/typicode/json-server) — local REST API for persisting words, lists, and notes
+- [json-server](https://github.com/typicode/json-server) — local REST API for persisting words, lists, and notes. Does not manipulate the DOM directly.
 - [nanoid](https://github.com/ai/nanoid) — unique ID generation
 - [react-icons](https://react-icons.github.io/react-icons/) — icon library
 
@@ -41,7 +41,7 @@ Built as a final project for the [Code the Dream](https://codethedream.org) curr
 ### 1. Clone the repository
 
 ```bash
-git clone <your-repo-url>
+git clone <repo-url>
 cd word_explorer
 ```
 
@@ -59,7 +59,7 @@ npm run db:reset
 
 This copies `db.seed.json` into `db.json` which is used by json-server.
 
-### 5. Start the local API server
+### 4. Start the local API server
 
 ```bash
 npm run server
@@ -67,7 +67,7 @@ npm run server
 
 The API will be available at `http://localhost:3001`.
 
-### 6. Start the development server
+### 5. Start the development server
 
 In a separate terminal:
 
@@ -76,17 +76,3 @@ npm run dev
 ```
 
 The app will be available at `http://localhost:5173`.
-
----
-
-## Available Scripts
-
-| Script | Description |
-|---|---|
-| `npm run dev` | Start Vite development server |
-| `npm run build` | Build for production |
-| `npm run preview` | Preview production build |
-| `npm run server` | Start json-server on port 3001 |
-| `npm run db:reset` | Reset database to seed data |
-| `npm run lint` | Run ESLint |
-| `npm run format` | Run Prettier |
