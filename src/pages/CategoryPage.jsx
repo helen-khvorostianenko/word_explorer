@@ -201,7 +201,6 @@ const ConfirmCancelButton = styled.button`
   }
 `;
 
-
 function CategoryPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -220,7 +219,6 @@ function CategoryPage() {
   const [notes, setNotes] = useState([]);
 
   const notesMap = new Map(notes.map((n) => [n.wordId, n.text]));
-
 
   useEffect(() => {
     async function load() {
@@ -271,12 +269,11 @@ function CategoryPage() {
     } catch (e) {
       setConfirmDelete(false);
       setDeleteCategoryError(
-        isNetworkError(e) 
+        isNetworkError(e)
           ? getNetworkErrorMessage()
-          : e.message || getGenericErrorMessage() 
+          : e.message || getGenericErrorMessage()
       );
     }
-    
   }
   async function handleDeleteWord(wordId) {
     try {
@@ -302,7 +299,7 @@ function CategoryPage() {
     setRenameValue(e.target.value);
   }
 
-  function handleCancel(){
+  function handleCancel() {
     setIsRenaming(false);
     setRenameError(null);
   }
@@ -370,22 +367,23 @@ function CategoryPage() {
               ) : (
                 <WordList>
                   {words.map((word) => {
-                  const noteText = notesMap.get(word.id);
-                  return (
-                    <WordItem key={word.id}>
-                      <WordInfo>
-                        <WordLink to={`/word/${encodeURIComponent(word.text)}`}>
-                          {word.text}
-                        </WordLink>
-                        {noteText && <NotePreview>{noteText}</NotePreview>}
-                      </WordInfo>
-                      <RemoveButton onClick={() => handleDeleteWord(word.id)}>
-                        Remove
-                      </RemoveButton>
-                    </WordItem>
-                  );
-                  }
-                )}
+                    const noteText = notesMap.get(word.id);
+                    return (
+                      <WordItem key={word.id}>
+                        <WordInfo>
+                          <WordLink
+                            to={`/word/${encodeURIComponent(word.text)}`}
+                          >
+                            {word.text}
+                          </WordLink>
+                          {noteText && <NotePreview>{noteText}</NotePreview>}
+                        </WordInfo>
+                        <RemoveButton onClick={() => handleDeleteWord(word.id)}>
+                          Remove
+                        </RemoveButton>
+                      </WordItem>
+                    );
+                  })}
                 </WordList>
               )}
               <DangerSection>

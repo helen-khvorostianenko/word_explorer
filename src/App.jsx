@@ -1,4 +1,4 @@
-import { Route, Routes} from 'react-router';
+import { Route, Routes } from 'react-router';
 import HomePage from './pages/HomePage.jsx';
 import WordPage from './pages/WordPage.jsx';
 import NotFoundPage from './pages/NotFoundPage.jsx';
@@ -8,7 +8,6 @@ import AboutPage from './pages/AboutPage.jsx';
 import './App.css';
 
 function App() {
-
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />

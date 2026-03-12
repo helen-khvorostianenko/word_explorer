@@ -1,6 +1,6 @@
-import { useParams} from "react-router";
-import { useEffect, useState} from 'react';
-import styled from "styled-components";
+import { useParams } from 'react-router';
+import { useEffect, useState } from 'react';
+import styled from 'styled-components';
 import Note from '../features/word/Note.jsx';
 import WordDefinition from '../features/word/WordDefinition.jsx';
 import RelatedWords from '../features/word/RelatedWords.jsx';
@@ -13,11 +13,11 @@ import {
   getGenericErrorMessage,
   getDictionaryErrorMessage,
 } from '../utils/errors.js';
-import { buildDictionaryUrl, normalizeDictionary } from '../utils/dictionary.js';
 import {
-  getCategories,
-  getWord,
-} from '../api/api.js';
+  buildDictionaryUrl,
+  normalizeDictionary,
+} from '../utils/dictionary.js';
+import { getCategories, getWord } from '../api/api.js';
 
 const StatusMessage = styled.p`
   color: var(--text-muted);
@@ -41,14 +41,14 @@ const WordContent = styled.div`
 function WordPage() {
   const { word } = useParams();
   const [card, setCard] = useState(null);
-  const [status, setStatus] = useState('idle'); 
+  const [status, setStatus] = useState('idle');
   const [error, setError] = useState(null);
 
   const [serverStatus, setServerStatus] = useState('idle');
   const [serverError, setServerError] = useState(null);
   const [categories, setCategories] = useState([]);
   const [savedWordData, setSavedWord] = useState(null);
-   
+
   useEffect(() => {
     if (!word) return;
 
@@ -71,7 +71,7 @@ function WordPage() {
 
         setCard(normalized);
         setStatus('success');
-      } catch(e){
+      } catch (e) {
         setStatus('error');
         if (isNetworkError(e)) {
           setError(getNetworkErrorMessage());
@@ -115,7 +115,7 @@ function WordPage() {
     }
     loadWordData();
   }, [word]);
-  
+
   return (
     <PageLayout>
       <SearchBar

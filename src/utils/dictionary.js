@@ -10,13 +10,15 @@ export function normalizeDictionary(apiData, maxDefsPerPart = 3) {
 
   const ipa =
     entry.phonetic ||
-    entry.phonetics?.find((item) => typeof item.text === 'string' && item.text.trim())
-      ?.text ||
+    entry.phonetics?.find(
+      (item) => typeof item.text === 'string' && item.text.trim()
+    )?.text ||
     null;
 
   const audioUrl =
-    entry.phonetics?.find((item) => typeof item.audio === 'string' && item.audio.trim())
-      ?.audio || null;
+    entry.phonetics?.find(
+      (item) => typeof item.audio === 'string' && item.audio.trim()
+    )?.audio || null;
 
   const definitionsByPos = (entry.meanings || [])
     .map((item) => ({

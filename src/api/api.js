@@ -50,17 +50,21 @@ export async function getWordsByCategory(categoryId) {
   const res = await fetch(
     `${SERVER_BASE_URL}/words?categoryId=${encodeURIComponent(categoryId)}`
   );
-  if (!res.ok) throw new Error(
-    `Failed to fetch words for category "${categoryId}": ${res.status}`
-  );
+  if (!res.ok)
+    throw new Error(
+      `Failed to fetch words for category "${categoryId}": ${res.status}`
+    );
   const data = await res.json();
   return Array.isArray(data) ? data : [];
 }
 
 export async function getWord(wordText) {
-  const res = await fetch(`${SERVER_BASE_URL}/words?text=${encodeURIComponent(wordText)}`);
+  const res = await fetch(
+    `${SERVER_BASE_URL}/words?text=${encodeURIComponent(wordText)}`
+  );
   if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`Failed to fetch word "${wordText}": ${res.status}`);
+  if (!res.ok)
+    throw new Error(`Failed to fetch word "${wordText}": ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) && data.length > 0 ? data[0] : null;
 }
@@ -83,35 +87,44 @@ export async function saveWord(wordText, categoryId) {
       addedAt: Date.now(),
     }),
   });
-  if (!res.ok) throw new Error(`Failed to save word "${wordText}": ${res.status}`);
+  if (!res.ok)
+    throw new Error(`Failed to save word "${wordText}": ${res.status}`);
   return res.json();
 }
 
 export async function updateWordCategory(wordId, newCategoryId) {
-  const res = await fetch(`${SERVER_BASE_URL}/words/${encodeURIComponent(wordId)}`, {
-    method: 'PATCH',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      categoryId: newCategoryId,
-      updatedAt: Date.now(),
-    }),
-  });
+  const res = await fetch(
+    `${SERVER_BASE_URL}/words/${encodeURIComponent(wordId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        categoryId: newCategoryId,
+        updatedAt: Date.now(),
+      }),
+    }
+  );
   if (!res.ok) throw new Error(`Failed to update word category: ${res.status}`);
   return res.json();
 }
 
 export async function deleteWord(wordId) {
-  const res = await fetch(`${SERVER_BASE_URL}/words/${encodeURIComponent(wordId)}`, {
-    method: 'DELETE',
-  });
+  const res = await fetch(
+    `${SERVER_BASE_URL}/words/${encodeURIComponent(wordId)}`,
+    {
+      method: 'DELETE',
+    }
+  );
   if (!res.ok) throw new Error(`Failed to delete word: ${res.status}`);
   return res.json();
 }
 
 export async function getNote(wordId) {
-  const res = await fetch(`${SERVER_BASE_URL}/notes?wordId=${encodeURIComponent(wordId)}`);
+  const res = await fetch(
+    `${SERVER_BASE_URL}/notes?wordId=${encodeURIComponent(wordId)}`
+  );
   if (!res.ok)
     throw new Error(`Failed to fetch note for word "${wordId}": ${res.status}`);
   const data = await res.json();
@@ -144,24 +157,30 @@ export async function saveNote(wordId, text) {
 }
 
 export async function updateNote(noteId, text) {
-  const res = await fetch(`${SERVER_BASE_URL}/notes/${encodeURIComponent(noteId)}`, {
-    method: 'PATCH',
-    headers: {
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      text,
-      updatedAt: Date.now(),
-    }),
-  });
+  const res = await fetch(
+    `${SERVER_BASE_URL}/notes/${encodeURIComponent(noteId)}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        text,
+        updatedAt: Date.now(),
+      }),
+    }
+  );
   if (!res.ok) throw new Error(`Failed to update note : ${res.status}`);
   return res.json();
 }
 
 export async function deleteNote(noteId) {
-  const res = await fetch(`${SERVER_BASE_URL}/notes/${encodeURIComponent(noteId)}`, {
-    method: `DELETE`,
-  });
+  const res = await fetch(
+    `${SERVER_BASE_URL}/notes/${encodeURIComponent(noteId)}`,
+    {
+      method: `DELETE`,
+    }
+  );
   if (!res.ok)
     throw new Error(`Failed to delete note "${noteId}": ${res.status}`);
   return res.json();

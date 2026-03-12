@@ -1,11 +1,15 @@
-import { useEffect, useState, useCallback} from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router';
 import styled from 'styled-components';
 import PageLayout from '../shared/PageLayout.jsx';
 import SearchBar from '../shared/SearchBar.jsx';
 import CategoryForm from '../features/categories/CategoryForm.jsx';
 import { createCategory, getAllWords, getCategories } from '../api/api.js';
-import { getGenericErrorMessage, getNetworkErrorMessage, isNetworkError } from '../utils/errors.js';
+import {
+  getGenericErrorMessage,
+  getNetworkErrorMessage,
+  isNetworkError,
+} from '../utils/errors.js';
 import { PiBooks, PiPlusBold } from 'react-icons/pi';
 
 const PREVIEW_WORDS_COUNT = 3;
@@ -129,7 +133,7 @@ const CardWordCount = styled(Link)`
   display: flex;
   align-items: center;
   gap: 0.3rem;
-  
+
   &:hover {
     color: var(--blue);
   }
@@ -199,7 +203,6 @@ const AddListButton = styled.button`
   }
 `;
 
-
 function HomePage() {
   const [categories, setCategories] = useState([]);
   const [status, setStatus] = useState('idle');
@@ -214,21 +217,24 @@ function HomePage() {
 
   useEffect(() => {
     async function load() {
-      try{
+      try {
         setStatus('loading');
         setError(null);
-        const [cats, words] = await Promise.all([getCategories(), getAllWords()]);
+        const [cats, words] = await Promise.all([
+          getCategories(),
+          getAllWords(),
+        ]);
         setCategories(cats);
         setAllWords(words);
         setStatus('success');
       } catch (e) {
         setStatus('error');
-        setError(isNetworkError(e) 
-          ? getNetworkErrorMessage() 
-          : e.message || getGenericErrorMessage()
+        setError(
+          isNetworkError(e)
+            ? getNetworkErrorMessage()
+            : e.message || getGenericErrorMessage()
         );
       }
-      
     }
     load();
   }, []);
@@ -236,13 +242,13 @@ function HomePage() {
   function handleChange(e) {
     setNewName(e.target.value);
   }
-  
-  function handleCancel(){
+
+  function handleCancel() {
     setIsCreating(false);
     setNewName('');
     setCreateError(null);
   }
-  
+
   async function handleCreate(e) {
     e.preventDefault();
     const trimmed = newName.trim();
@@ -280,7 +286,7 @@ function HomePage() {
   }
 
   const totalPages = Math.ceil(categories.length / PAGE_SIZE);
-  
+
   const getPagedCategories = useCallback(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
     return categories.slice(start, start + PAGE_SIZE);
