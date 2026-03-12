@@ -217,7 +217,7 @@ function SearchBar({ savedWords = [], categories = [] }) {
       if (!word) return;
       navigate(`/word/${encodeURIComponent(word)}`);
     },
-    [query, navigate, activeIndex, suggestions, handleSelect]
+    [query, navigate, activeIndex, suggestions]
   );
 
   const handleSelect = useCallback(
