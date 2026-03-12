@@ -1,6 +1,6 @@
-import { NavLink } from 'react-router';
+import { NavLink, Link } from 'react-router';
 import styled from 'styled-components';
-import { RiFileWord2Line } from 'react-icons/ri';
+import { ImCompass2 } from 'react-icons/im';
 
 const StyledHeader = styled.header`
   background: var(--navy);
@@ -8,32 +8,33 @@ const StyledHeader = styled.header`
   padding: 0.85rem 2rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 2rem;
 `;
 
-const Logo = styled(NavLink)`
+const Logo = styled(Link)`
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #fff;
+  color: var(--gold);
   font-size: 1.15rem;
   font-weight: bold;
   letter-spacing: 0.04em;
 
-  &.active {
+  span {
     color: #fff;
   }
 `;
 
 const Nav = styled.nav`
   display: flex;
+  align-items: center;
   gap: 1.5rem;
 `;
 
 const NavItem = styled(NavLink)`
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.95rem;
-  padding-bottom: 3px;
+  line-height: 1;
   border-bottom: 2px solid transparent;
   transition:
     color 0.2s,
@@ -82,10 +83,10 @@ function PageLayout({ children }) {
     <>
       <StyledHeader>
         <Logo to="/">
-          <RiFileWord2Line size={44} />
+          <ImCompass2 size={28} />
+          <span>W·E</span>
         </Logo>
         <Nav>
-          <NavItem to="/">Home</NavItem>
           <NavItem to="/about">About</NavItem>
         </Nav>
       </StyledHeader>
